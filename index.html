@@ -3,13 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Crossword Duel - Pro Kare</title>
+    <title>Crossword Duel - Masterpiece</title>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800&family=Roboto:wght@500;700;900&display=swap" rel="stylesheet">
     <script src="/socket.io/socket.io.js"></script>
     <style>
         :root { --bg-body: #0f172a; --bg-app: #f8fafc; --clue-bg: #d1fae5; --clue-shadow: #34d399; --text-dark: #0f172a; --clue-text: #064e3b; --success: #22c55e; --error: #ef4444; --p2-color: #3b82f6; --tile-bg: #ffedd5; --tile-border: #f97316; --tile-text: #c2410c; }
         * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; font-family: 'Montserrat', sans-serif; }
-        body { background-color: var(--bg-body); display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 15px; }
+        body { background-color: var(--bg-body); display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 10px; }
+        
         .lobby-container { width: 100%; max-width: 440px; background: white; padding: 40px 30px; border-radius: 24px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
         .lobby-title { font-size: 32px; font-weight: 800; margin-bottom: 30px; background: linear-gradient(135deg, #10b981, #3b82f6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         .lobby-btn { width: 100%; padding: 16px; border: none; border-radius: 14px; font-size: 18px; font-weight: 700; cursor: pointer; margin-bottom: 15px; transition: all 0.2s; color: white; }
@@ -18,53 +19,55 @@
         .input-code { width: 100%; padding: 14px; border: 2px solid #cbd5e1; border-radius: 12px; font-size: 18px; text-align: center; margin-bottom: 15px; text-transform: uppercase; font-weight: 700; }
         .waiting-text { font-size: 16px; font-weight: 700; color: #64748b; margin-top: 15px; display: none; }
         
-        .app-container { display: none; width: 100%; max-width: 500px; background-color: var(--bg-app); flex-direction: column; border-radius: 24px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6); overflow: hidden; position: relative; }
-        .header { display: flex; justify-content: space-between; align-items: center; padding: 18px 25px; background: #ffffff; border-bottom: 2px solid #e2e8f0; }
-        .player-badge { display: flex; align-items: center; gap: 10px; padding: 8px 18px; border-radius: 30px; background: #f1f5f9; border: 2px solid #cbd5e1; transition: all 0.3s; }
+        .app-container { display: none; width: 100%; max-width: 550px; background-color: var(--bg-app); flex-direction: column; border-radius: 20px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6); overflow: hidden; position: relative; }
+        .header { display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; background: #ffffff; border-bottom: 2px solid #e2e8f0; }
+        .player-badge { display: flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 30px; background: #f1f5f9; border: 2px solid #cbd5e1; transition: all 0.3s; }
         .player-badge.active-turn { background: #f0fdf4; border-color: #4ade80; box-shadow: 0 0 15px rgba(74, 222, 128, 0.4); }
-        .p-name { font-size: 12px; font-weight: 700; color: var(--text-dark); max-width: 80px; overflow: hidden; text-overflow: ellipsis; }
-        .p-score { font-size: 26px; font-weight: 800; color: #1e293b; }
-        .vs { font-weight: 800; color: #94a3b8; font-size: 15px; }
+        .p-name { font-size: 12px; font-weight: 700; color: var(--text-dark); max-width: 70px; overflow: hidden; text-overflow: ellipsis; }
+        .p-score { font-size: 22px; font-weight: 800; color: #1e293b; }
+        .vs { font-weight: 800; color: #94a3b8; font-size: 14px; }
         
-        .board-wrapper { padding: 10px; background-color: #e2e8f0; position: relative; display: flex; align-items: center; justify-content: center; min-height: 420px;}
+        /* OYUN TAHTASI (Sıkıştırılmış 7x9 Matris) */
+        .board-wrapper { padding: 8px; background-color: #e2e8f0; position: relative; display: flex; align-items: center; justify-content: center; }
+        .grid { display: grid; gap: 3px; width: 100%; background: transparent; border: none; }
         
-        .grid { display: grid; gap: 5px; width: 100%; background: transparent; border: none; }
-        
-        .cell { aspect-ratio: 1; position: relative; display: flex; justify-content: center; align-items: center; font-size: 24px; font-weight: 800; color: var(--text-dark); text-transform: uppercase; border-radius: 10px; cursor: pointer; }
+        .cell { aspect-ratio: 1; position: relative; display: flex; justify-content: center; align-items: center; font-size: 18px; font-weight: 800; color: var(--text-dark); text-transform: uppercase; border-radius: 6px; cursor: pointer; }
         .cell-blank { background: #cbd5e1; opacity: 0.2; pointer-events: none; }
-        .cell-logo { background: linear-gradient(135deg, #10b981, #3b82f6); color: white; box-shadow: 0 4px 0 #059669; border-radius: 10px; display: flex; flex-direction: column; justify-content: center; align-items: center; font-size: 9px; font-weight: 900; line-height: 1.2; text-align: center; }
-        .cell-clue { background-color: var(--clue-bg); box-shadow: 0 4px 0 var(--clue-shadow); flex-direction: column; padding: 3px; text-align: center; }
-        .clue-text { font-size: 8px; font-weight: 800; line-height: 1.1; color: var(--clue-text); font-family: 'Roboto', sans-serif; word-break: break-word; }
+        .cell-logo { background: linear-gradient(135deg, #10b981, #3b82f6); color: white; box-shadow: 0 2px 0 #059669; border-radius: 6px; display: flex; flex-direction: column; justify-content: center; align-items: center; font-size: 8px; font-weight: 900; line-height: 1.1; text-align: center; }
         
-        /* OKLAR (Hem sağa hem aşağı ok aynı anda çıkabilir!) */
-        .arrow { position: absolute; font-size: 10px; font-weight: 900; color: #047857; }
-        .arrow-down { bottom: 2px; left: 50%; transform: translateX(-50%); }
-        .arrow-right { right: 2px; top: 50%; transform: translateY(-50%); }
+        /* İPUCU KUTULARI (Tam gazetelerdeki gibi minik yazılar) */
+        .cell-clue { background-color: var(--clue-bg); box-shadow: 0 2px 0 var(--clue-shadow); flex-direction: column; padding: 2px; text-align: center; }
+        .clue-text { font-size: 6px; font-weight: 800; line-height: 1.1; color: var(--clue-text); font-family: 'Roboto', sans-serif; word-break: break-word; }
+        .arrow { position: absolute; font-size: 8px; font-weight: 900; color: #047857; }
+        .arrow-down { bottom: 1px; left: 50%; transform: translateX(-50%); }
+        .arrow-right { right: 1px; top: 50%; transform: translateY(-50%); }
         
-        .cell-empty { background-color: #ffffff; box-shadow: 0 4px 0 #cbd5e1; transition: all 0.2s; }
-        .cell-correct { background-color: var(--success) !important; box-shadow: 0 4px 0 #16a34a !important; color: white !important; animation: popIn 0.3s ease-out; }
-        .cell-other-correct { background-color: var(--p2-color) !important; box-shadow: 0 4px 0 #2563eb !important; color: white !important; animation: popIn 0.3s ease-out; }
-        .cell-wrong { background-color: var(--error) !important; box-shadow: 0 4px 0 #dc2626 !important; color: white !important; animation: shake 0.4s ease-in-out; }
+        .cell-empty { background-color: #ffffff; box-shadow: 0 2px 0 #cbd5e1; transition: all 0.2s; }
+        .cell-correct { background-color: var(--success) !important; box-shadow: 0 2px 0 #16a34a !important; color: white !important; animation: popIn 0.3s ease-out; }
+        .cell-other-correct { background-color: var(--p2-color) !important; box-shadow: 0 2px 0 #2563eb !important; color: white !important; animation: popIn 0.3s ease-out; }
+        .cell-wrong { background-color: var(--error) !important; box-shadow: 0 2px 0 #dc2626 !important; color: white !important; animation: shake 0.4s ease-in-out; }
         
-        .bonus-popup { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); background: #fbbf24; color: #78350f; padding: 12px 24px; border-radius: 20px; font-size: 20px; font-weight: 800; box-shadow: 0 10px 25px rgba(0,0,0,0.4); opacity: 0; pointer-events: none; z-index: 50; transition: opacity 0.3s; text-align: center; }
+        .bonus-popup { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); background: #fbbf24; color: #78350f; padding: 10px 20px; border-radius: 15px; font-size: 16px; font-weight: 800; box-shadow: 0 10px 25px rgba(0,0,0,0.4); opacity: 0; pointer-events: none; z-index: 50; transition: opacity 0.3s; text-align: center; }
         .bonus-popup.show { opacity: 1; animation: floatUp 1.5s ease-out forwards; }
         .game-over-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.95); display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 100; color: white; text-align: center; }
-        .footer-controls { padding: 20px 25px; background-color: #ffffff; border-top: 2px solid #e2e8f0; position: relative; border-radius: 0 0 24px 24px; }
-        .turn-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(2px); display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 10; border-radius: 0 0 24px 24px; }
-        .turn-overlay.active { display: flex; }
-        .thinking-spinner { width: 35px; height: 35px; border: 4px solid #cbd5e1; border-top-color: var(--p2-color); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 10px; }
-        .info-text { text-align: center; font-size: 13px; color: #64748b; margin-bottom: 12px; font-weight: 700; }
-        .rack { display: flex; justify-content: center; gap: 8px; min-height: 70px; padding: 12px; background: #f8fafc; border-radius: 16px; border: 2px dashed #cbd5e1; margin-bottom: 20px; cursor: pointer; }
         
-        .tile { width: 52px; height: 55px; background-color: var(--tile-bg); border: 2px solid var(--tile-border); border-radius: 12px; display: flex; justify-content: center; align-items: center; font-size: 26px; font-weight: 800; color: var(--tile-text); cursor: pointer; box-shadow: 0 4px 0 #ea580c; transition: all 0.2s; }
-        .placed-tile { width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; background-color: #fef3c7; color: #b45309; font-size: 24px; font-weight: 800; border-radius: 8px; cursor: pointer; transition: all 0.2s; }
-        .tile.selected { border: 3px solid #3b82f6; transform: scale(1.1); box-shadow: 0 0 15px rgba(59, 130, 246, 0.6); z-index: 5; }
+        .footer-controls { padding: 15px 20px; background-color: #ffffff; border-top: 2px solid #e2e8f0; position: relative; border-radius: 0 0 20px 20px; }
+        .turn-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(2px); display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 10; border-radius: 0 0 20px 20px; }
+        .turn-overlay.active { display: flex; }
+        .thinking-spinner { width: 30px; height: 30px; border: 4px solid #cbd5e1; border-top-color: var(--p2-color); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 8px; }
+        .info-text { text-align: center; font-size: 12px; color: #64748b; margin-bottom: 10px; font-weight: 700; }
+        .rack { display: flex; justify-content: center; gap: 6px; min-height: 55px; padding: 8px; background: #f8fafc; border-radius: 12px; border: 2px dashed #cbd5e1; margin-bottom: 15px; cursor: pointer; }
+        
+        .tile { width: 45px; height: 48px; background-color: var(--tile-bg); border: 2px solid var(--tile-border); border-radius: 8px; display: flex; justify-content: center; align-items: center; font-size: 22px; font-weight: 800; color: var(--tile-text); cursor: pointer; box-shadow: 0 3px 0 #ea580c; transition: all 0.2s; }
+        .placed-tile { width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; background-color: #fef3c7; color: #b45309; font-size: 20px; font-weight: 800; border-radius: 6px; cursor: pointer; transition: all 0.2s; }
+        .tile.selected { border: 2px solid #3b82f6; transform: scale(1.1); box-shadow: 0 0 10px rgba(59, 130, 246, 0.6); z-index: 5; }
 
-        .btn-pas { width: 100%; padding: 18px; background-color: #94a3b8; color: white; border: none; border-radius: 16px; font-size: 20px; font-weight: 800; cursor: pointer; box-shadow: 0 6px 0 #64748b; transition: all 0.2s; }
-        .btn-pas:active { transform: translateY(6px); box-shadow: 0 0 0 transparent; }
-        .btn-pulse { background-color: var(--success); box-shadow: 0 6px 0 #16a34a; animation: pulse-btn 1.5s infinite; }
-        @keyframes pulse-btn { 0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.6), 0 6px 0 #16a34a; } 70% { box-shadow: 0 0 0 15px rgba(34, 197, 94, 0), 0 6px 0 #16a34a; } 100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0), 0 6px 0 #16a34a; } }
-        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+        .btn-pas { width: 100%; padding: 14px; background-color: #94a3b8; color: white; border: none; border-radius: 12px; font-size: 18px; font-weight: 800; cursor: pointer; box-shadow: 0 5px 0 #64748b; transition: all 0.2s; }
+        .btn-pas:active { transform: translateY(5px); box-shadow: 0 0 0 transparent; }
+        .btn-pulse { background-color: var(--success); box-shadow: 0 5px 0 #16a34a; animation: pulse-btn 1.5s infinite; }
+        
+        @keyframes pulse-btn { 0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.6), 0 5px 0 #16a34a; } 70% { box-shadow: 0 0 0 10px rgba(34, 197, 94, 0), 0 5px 0 #16a34a; } 100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0), 0 5px 0 #16a34a; } }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
         @keyframes popIn { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
         @keyframes floatUp { 0% { transform: translate(-50%, -50%) scale(0.8); opacity: 1; } 100% { transform: translate(-50%, -150%) scale(1.1); opacity: 0; } }
     </style>
@@ -96,16 +99,16 @@
             <div class="grid" id="grid"></div>
             <div class="bonus-popup" id="bonus-popup"></div>
             <div class="game-over-overlay" id="game-over">
-                <h1 style="color: #fbbf24; font-size: 40px; margin-bottom: 10px;">MAÇ BİTTİ!</h1>
-                <h2 id="winner-text" style="margin-bottom: 30px;">-</h2>
-                <button onclick="location.reload()" style="padding: 15px 30px; font-size: 18px; border-radius: 12px; border:none; background:white; color:black; font-weight:bold; cursor:pointer;">Lobiye Dön</button>
+                <h1 style="color: #fbbf24; font-size: 35px; margin-bottom: 10px;">MAÇ BİTTİ!</h1>
+                <h2 id="winner-text" style="margin-bottom: 25px;">-</h2>
+                <button onclick="location.reload()" style="padding: 12px 24px; font-size: 16px; border-radius: 10px; border:none; background:white; color:black; font-weight:bold; cursor:pointer;">Lobiye Dön</button>
             </div>
         </div>
 
         <div class="footer-controls">
             <div class="turn-overlay" id="turn-overlay">
                 <div class="thinking-spinner"></div>
-                <h3 style="color: var(--p2-color); font-size: 18px;">Rakibin oynaması bekleniyor...</h3>
+                <h3 style="color: var(--p2-color); font-size: 16px;">Rakibin oynaması bekleniyor...</h3>
             </div>
             <div class="info-text" id="pool-info">Havuzdaki Kalan Harf: --</div>
             <div class="rack" id="rack"></div>
@@ -145,6 +148,7 @@
             currentRoomId = data.roomId; activePuzzle = data.puzzle; letterPool = data.letterPool;
             document.getElementById('lobby').style.display = 'none'; document.getElementById('game-area').style.display = 'flex';
             
+            // Izgara genişliği otomatik ayarlandı (Görseldeki gibi 7 kolon)
             const gridEl = document.getElementById('grid');
             gridEl.style.gridTemplateColumns = `repeat(${activePuzzle.cols}, 1fr)`;
 
@@ -162,8 +166,7 @@
                     else if(cellData.t === 'logo') { cell.className = 'cell cell-logo'; cell.innerHTML = cellData.text; } 
                     else if(cellData.t === 'c') {
                         cell.classList.add('cell-clue'); cell.innerHTML = `<span class="clue-text">${cellData.text}</span>`;
-                        
-                        // YENİ: ÇİFT YÖNLÜ OK MEKANİZMASI (dir:'both' gelirse ikisini de çizer)
+                        // Çift yönlü ok desteği
                         if(cellData.dir === 'down' || cellData.dir === 'both') cell.innerHTML += `<span class="arrow arrow-down">▼</span>`;
                         if(cellData.dir === 'right' || cellData.dir === 'both') cell.innerHTML += `<span class="arrow arrow-right">►</span>`;
                     }
@@ -273,7 +276,7 @@
                     });
                     if(isWordFilled) { 
                         wordData.completed = true; 
-                        totalBonus += wordData.length; 
+                        totalBonus += wordData.length; // Kelime boyutu kadar bonus verilir! (MESKEN=6 Puan)
                     }
                 }
             }

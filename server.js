@@ -10,32 +10,42 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// YENİ NESİL KUSURSUZ "KARE" BULMACA (6x6 - Sıfır Açık Harf!)
+// KUSURSUZ ÇENGEL BULMACA (Attığın Görselin Birebir Aynısı)
 const puzzleDatabase = [
     {
         id: 1,
-        rows: 6,
-        cols: 6,
+        rows: 9,
+        cols: 7,
         matrix: [
-            [{t:'logo', text:'CROSS<br>DUEL'}, {t:'logo', text:'PRO<br>V1'}, {t:'c', text:'BENİM KAZAM<br>(Trafik..)', dir:'down'}, {t:'c', text:'ESERLERLE<br>İLGİLİ', dir:'down'}, {t:'c', text:'KISMET /<br>PAY', dir:'down'}, {t:'c', text:'KEMİK<br>İÇİ', dir:'down'}],
-            [{t:'logo', text:'BÖLÜM<br>1'}, {t:'c', text:'İKNA OLMUŞ<br>--<br>YEMEK EŞYASI', dir:'both'}, {t:'w', ans:'K', words:[1,7]}, {t:'w', ans:'A', words:[1,8]}, {t:'w', ans:'N', words:[1,9]}, {t:'w', ans:'İ', words:[1,10]}],
-            [{t:'c', text:'OLAĞANÜSTÜ<br>ÖYKÜ', dir:'right'}, {t:'w', ans:'M', words:[2,6]}, {t:'w', ans:'A', words:[2,7]}, {t:'w', ans:'S', words:[2,8]}, {t:'w', ans:'A', words:[2,9]}, {t:'w', ans:'L', words:[2,10]}],
-            [{t:'c', text:'BİR KURULUN<br>ÜYESİ', dir:'right'}, {t:'w', ans:'A', words:[3,6]}, {t:'w', ans:'Z', words:[3,7]}, {t:'w', ans:'A', words:[3,8]}, {t:'w', ans:'S', words:[3,9]}, {t:'w', ans:'İ', words:[3,10]}],
-            [{t:'c', text:'HIRSIZ /<br>ÇALAN', dir:'right'}, {t:'w', ans:'S', words:[4,6]}, {t:'w', ans:'A', words:[4,7]}, {t:'w', ans:'R', words:[4,8]}, {t:'w', ans:'İ', words:[4,9]}, {t:'w', ans:'K', words:[4,10]}],
-            [{t:'c', text:'TEK HÜCRELİ<br>CANLI', dir:'right'}, {t:'w', ans:'A', words:[5,6]}, {t:'w', ans:'M', words:[5,7]}, {t:'w', ans:'İ', words:[5,8]}, {t:'w', ans:'P', words:[5,9]}, {t:'logo', text:'CROSS<br>DUEL'}]
+            // Satır 0 (En Üst İpuçları)
+            [{t:'logo', text:'CROSS<br>DUEL'}, {t:'c', text:'KANSERİN<br>YAYILMASI', dir:'down'}, {t:'c', text:'MUTFAK<br>TEKNESİ', dir:'down'}, {t:'c', text:'KÜKÜRT<br>SİMGESİ', dir:'down'}, {t:'c', text:'MOTOSİKLET<br>BAŞLIĞI', dir:'down'}, {t:'c', text:'BİR GÖZ<br>RENGİ', dir:'down'}, {t:'c', text:'BUCAK', dir:'down'}],
+            // Satır 1
+            [{t:'c', text:'OTURULAN<br>YER', dir:'right'}, {t:'w', ans:'M', words:[1,2]}, {t:'w', ans:'E', words:[1,3]}, {t:'w', ans:'S', words:[1,4]}, {t:'w', ans:'K', words:[1,5]}, {t:'w', ans:'E', words:[1,6]}, {t:'w', ans:'N', words:[1,7]}],
+            // Satır 2
+            [{t:'c', text:'BARINAK', dir:'right'}, {t:'w', ans:'E', words:[8,2]}, {t:'w', ans:'V', words:[8,3]}, {t:'c', text:'KARIŞIK<br>RENK<br>--<br>DÖRT TIRNAKLI<br>DEMİR', dir:'both'}, {t:'w', ans:'A', words:[9,5]}, {t:'w', ans:'L', words:[9,6]}, {t:'w', ans:'A', words:[9,7]}],
+            // Satır 3
+            [{t:'c', text:'BÜYÜK<br>SÜRÜNGEN', dir:'right'}, {t:'w', ans:'T', words:[11,2]}, {t:'w', ans:'İ', words:[11,3]}, {t:'w', ans:'M', words:[11,10]}, {t:'w', ans:'S', words:[11,5]}, {t:'w', ans:'A', words:[11,6]}, {t:'w', ans:'H', words:[11,7]}],
+            // Satır 4
+            [{t:'c', text:'YÜRÜME<br>ORGANI', dir:'right'}, {t:'w', ans:'A', words:[12,2]}, {t:'w', ans:'Y', words:[12,3]}, {t:'w', ans:'A', words:[12,10]}, {t:'w', ans:'K', words:[12,5]}, {t:'c', text:'İNCE BİR<br>ÜNLÜ<br>--<br>SORGUÇLU<br>BALIKÇIL', dir:'both'}, {t:'w', ans:'İ', words:[13,7]}],
+            // Satır 5
+            [{t:'c', text:'SU<br>TAŞKINI', dir:'right'}, {t:'w', ans:'S', words:[14,2]}, {t:'w', ans:'E', words:[14,3]}, {t:'w', ans:'L', words:[14,10]}, {t:'c', text:'SESLENME<br>ÜNLEMİ<br>--<br>ESKİ AVRUPA<br>PARASI', dir:'both'}, {t:'w', ans:'O', words:[16,15]}, {t:'w', ans:'Y', words:[16,7]}],
+            // Satır 6
+            [{t:'c', text:'TON<br>KISALTMASI', dir:'right'}, {t:'w', ans:'T', words:[17,2]}, {t:'c', text:'DÜMEN<br>KOLU<br>--<br>İKİNCİ<br>NOTA', dir:'both'}, {t:'w', ans:'Y', words:[18,10]}, {t:'w', ans:'E', words:[18,19]}, {t:'w', ans:'K', words:[18,15]}, {t:'w', ans:'E', words:[18,7]}],
+            // Satır 7
+            [{t:'c', text:'İRİ TANELİ<br>BEZELYE', dir:'right'}, {t:'w', ans:'A', words:[21,2]}, {t:'w', ans:'R', words:[21,20]}, {t:'w', ans:'A', words:[21,10]}, {t:'w', ans:'K', words:[21,19]}, {t:'w', ans:'A', words:[21,15]}, {t:'c', text:'ÜNLEM<br>SÖZÜ', dir:'down'}],
+            // Satır 8
+            [{t:'c', text:'ESKİ SEN<br>HİTABI', dir:'right'}, {t:'w', ans:'Z', words:[23,2]}, {t:'w', ans:'E', words:[23,20]}, {t:'c', text:'AZOTLU<br>MADDE', dir:'right'}, {t:'w', ans:'Ü', words:[24,19]}, {t:'w', ans:'R', words:[24,15]}, {t:'w', ans:'E', words:[24,22]}]
         ],
-        // Her kelimenin boyutu stratejik olarak 4 ve 5 harflerden oluşur!
+        // Tam 24 adet dinamik kelime! Kesişimler kusursuz hesaplandı.
         words: { 
-            1: { length: 4, completed: false }, // KANİ
-            2: { length: 5, completed: false }, // MASAL
-            3: { length: 5, completed: false }, // AZASİ
-            4: { length: 5, completed: false }, // SARİK
-            5: { length: 4, completed: false }, // AMİP
-            6: { length: 4, completed: false }, // MASA (Dikey)
-            7: { length: 5, completed: false }, // KAZAM (Dikey)
-            8: { length: 5, completed: false }, // ASARİ (Dikey)
-            9: { length: 5, completed: false }, // NASİP (Dikey)
-            10: { length: 4, completed: false } // İLİK (Dikey)
+            1: { length: 6, completed: false }, 2: { length: 8, completed: false }, 3: { length: 5, completed: false },
+            4: { length: 1, completed: false }, 5: { length: 4, completed: false }, 6: { length: 3, completed: false },
+            7: { length: 6, completed: false }, 8: { length: 2, completed: false }, 9: { length: 3, completed: false },
+            10: { length: 5, completed: false }, 11: { length: 6, completed: false }, 12: { length: 4, completed: false },
+            13: { length: 1, completed: false }, 14: { length: 3, completed: false }, 15: { length: 4, completed: false },
+            16: { length: 2, completed: false }, 17: { length: 1, completed: false }, 18: { length: 4, completed: false },
+            19: { length: 3, completed: false }, 20: { length: 2, completed: false }, 21: { length: 5, completed: false },
+            22: { length: 1, completed: false }, 23: { length: 2, completed: false }, 24: { length: 3, completed: false }
         }
     }
 ];
