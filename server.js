@@ -10,40 +10,42 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
+// YENİ NESİL DİNAMİK BULMACA HAVUZU (8x8 Grid ve Farklı Kelime Boyutları)
 const puzzleDatabase = [
     {
         id: 1,
+        rows: 8,
+        cols: 8,
         matrix: [
-            [{t:'logo', text:'BÖLÜM<br>1'}, {t:'c', text:'ATEŞLİ<br>HASTALIK', dir:'down'}, {t:'blank'}, {t:'c', text:'ACI/TATLI<br>SEBZE', dir:'down'}, {t:'blank'}, {t:'c', text:'YIKIK<br>DÖKÜK', dir:'down'}],
-            [{t:'c', text:'GÜNDÜZÜN<br>İLK SAATİ', dir:'right'}, {t:'w', ans:'S', words:[1,4]}, {t:'w', ans:'A', words:[1]}, {t:'w', ans:'B', words:[1,5]}, {t:'w', ans:'A', words:[1]}, {t:'w', ans:'H', words:[1,6]}],
-            [{t:'blank'}, {t:'w', ans:'I', words:[4]}, {t:'blank'}, {t:'w', ans:'İ', words:[5]}, {t:'blank'}, {t:'w', ans:'A', words:[6]}],
-            [{t:'c', text:'RÜYA<br>YORUMU', dir:'right'}, {t:'w', ans:'T', words:[2,4]}, {t:'w', ans:'A', words:[2]}, {t:'w', ans:'B', words:[2,5]}, {t:'w', ans:'İ', words:[2]}, {t:'w', ans:'R', words:[2,6]}],
-            [{t:'blank'}, {t:'w', ans:'M', words:[4]}, {t:'blank'}, {t:'w', ans:'E', words:[5]}, {t:'blank'}, {t:'w', ans:'A', words:[6]}],
-            [{t:'c', text:'ZEHİRLİ<br>BÖCEK', dir:'right'}, {t:'w', ans:'A', words:[3,4]}, {t:'w', ans:'K', words:[3]}, {t:'w', ans:'R', words:[3,5]}, {t:'w', ans:'E', words:[3]}, {t:'w', ans:'P', words:[3,6]}]
+            [{t:'logo', text:'DUELLER<br>BAŞLASIN'}, {t:'c', text:'İLGEÇ', dir:'down'}, {t:'blank'}, {t:'c', text:'KIRMIZI', dir:'down'}, {t:'blank'}, {t:'c', text:'SARI / KIRMIZI<br>TAKIM', dir:'down'}, {t:'blank'}, {t:'blank'}],
+            [{t:'c', text:'YAZI<br>ARACI', dir:'right'}, {t:'w', ans:'K', words:[1,4]}, {t:'w', ans:'A', words:[1]}, {t:'w', ans:'L', words:[1,5]}, {t:'w', ans:'E', words:[1]}, {t:'w', ans:'M', words:[1,6]}, {t:'blank'}, {t:'blank'}],
+            [{t:'blank'}, {t:'w', ans:'A', words:[4]}, {t:'blank'}, {t:'w', ans:'A', words:[5]}, {t:'blank'}, {t:'w', ans:'A', words:[6]}, {t:'c', text:'TÜKETMEK', dir:'down'}, {t:'blank'}],
+            [{t:'c', text:'BÜYÜK<br>EV', dir:'right'}, {t:'w', ans:'K', words:[2,4]}, {t:'w', ans:'O', words:[2]}, {t:'w', ans:'N', words:[2,5]}, {t:'w', ans:'A', words:[2]}, {t:'w', ans:'K', words:[2,6]}, {t:'w', ans:'S', words:[2,7]}, {t:'blank'}],
+            [{t:'blank'}, {t:'w', ans:'D', words:[4]}, {t:'blank'}, {t:'blank'}, {t:'blank'}, {t:'w', ans:'S', words:[6]}, {t:'w', ans:'A', words:[7]}, {t:'blank'}],
+            [{t:'c', text:'YÜCE / ULU', dir:'right'}, {t:'w', ans:'A', words:[3,4]}, {t:'w', ans:'Z', words:[3]}, {t:'w', ans:'İ', words:[3]}, {t:'w', ans:'M', words:[3]}, {t:'w', ans:'I', words:[3,6]}, {t:'w', ans:'R', words:[3,7]}, {t:'blank'}],
+            [{t:'blank'}, {t:'blank'}, {t:'blank'}, {t:'blank'}, {t:'blank'}, {t:'blank'}, {t:'w', ans:'F', words:[7]}, {t:'blank'}],
+            [{t:'blank'}, {t:'blank'}, {t:'blank'}, {t:'blank'}, {t:'blank'}, {t:'blank'}, {t:'blank'}, {t:'blank'}]
         ],
-        words: { 1: { length: 5, completed: false }, 2: { length: 5, completed: false }, 3: { length: 5, completed: false }, 4: { length: 5, completed: false }, 5: { length: 5, completed: false }, 6: { length: 5, completed: false } }
-    },
-    {
-        id: 2,
-        matrix: [
-            [{t:'logo', text:'BÖLÜM<br>2'}, {t:'c', text:'KARIN<br>ALTI', dir:'down'}, {t:'blank'}, {t:'c', text:'HAMUR<br>İŞİ', dir:'down'}, {t:'blank'}, {t:'c', text:'UÇAN<br>BÖCEK', dir:'down'}],
-            [{t:'c', text:'KÖTÜ<br>RÜYA', dir:'right'}, {t:'w', ans:'K', words:[1,4]}, {t:'w', ans:'A', words:[1]}, {t:'w', ans:'B', words:[1,5]}, {t:'w', ans:'U', words:[1]}, {t:'w', ans:'S', words:[1,6]}],
-            [{t:'blank'}, {t:'w', ans:'A', words:[4]}, {t:'blank'}, {t:'w', ans:'Ö', words:[5]}, {t:'blank'}, {t:'w', ans:'İ', words:[6]}],
-            [{t:'c', text:'YELKEN<br>DİREĞİ', dir:'right'}, {t:'w', ans:'S', words:[2,4]}, {t:'w', ans:'E', words:[2]}, {t:'w', ans:'R', words:[2,5]}, {t:'w', ans:'E', words:[2]}, {t:'w', ans:'N', words:[2,6]}],
-            [{t:'blank'}, {t:'w', ans:'I', words:[4]}, {t:'blank'}, {t:'w', ans:'E', words:[5]}, {t:'blank'}, {t:'w', ans:'E', words:[6]}],
-            [{t:'c', text:'KOKULU<br>OT', dir:'right'}, {t:'w', ans:'K', words:[3,4]}, {t:'w', ans:'E', words:[3]}, {t:'w', ans:'K', words:[3,5]}, {t:'w', ans:'İ', words:[3]}, {t:'w', ans:'K', words:[3,6]}]
-        ],
-        words: { 1: { length: 5, completed: false }, 2: { length: 5, completed: false }, 3: { length: 5, completed: false }, 4: { length: 5, completed: false }, 5: { length: 5, completed: false }, 6: { length: 5, completed: false } }
+        // Kelimelerin kendi gerçek uzunluklarına göre bonus puanları dinamik hesaplanacak
+        words: { 
+            1: { length: 5, completed: false }, // KALEM (5 Puan)
+            2: { length: 6, completed: false }, // KONAKS (6 Puan)
+            3: { length: 6, completed: false }, // AZİMİR (6 Puan)
+            4: { length: 5, completed: false }, // KADRA (5 Puan)
+            5: { length: 3, completed: false }, // LAN (3 Puan) - Çıtır taktiksel kelime
+            6: { length: 5, completed: false }, // MAKSİ (5 Puan)
+            7: { length: 4, completed: false }  // SARF (4 Puan) - Ortadan başlayan kelime
+        }
     }
 ];
 
 const rooms = {};
 
 io.on('connection', (socket) => {
-    socket.on('createRoom', () => {
-        // Eski odalarından çıkmasını sağla
-        for (const r in rooms) { if (rooms[r].players.includes(socket.id)) return; }
+    console.log('🔌 Oyuncu Bağlantısı Aktif: ', socket.id);
 
+    socket.on('createRoom', () => {
+        for (const r in rooms) { if (rooms[r].players.includes(socket.id)) return; }
         const roomId = Math.random().toString(36).substring(2, 6).toUpperCase();
         const randomIndex = Math.floor(Math.random() * puzzleDatabase.length);
         
@@ -65,8 +67,6 @@ io.on('connection', (socket) => {
         const room = rooms[roomId];
 
         if (!room) { socket.emit('errorMsg', 'Oda bulunamadı!'); return; }
-        
-        // Çift Tıklama / Hayalet Oyuncu Koruması
         if (room.players.includes(socket.id)) return; 
         if (room.players.length >= 2) { socket.emit('errorMsg', 'Oda zaten dolu!'); return; }
 
@@ -77,6 +77,8 @@ io.on('connection', (socket) => {
         if (room.players.length === 2) {
             let cells = [];
             room.puzzle.matrix.forEach(row => { row.forEach(cell => { if(cell.t === 'w') cells.push(cell.ans); }); });
+            
+            // Harf havuzunu karıştır
             room.letterPool = cells.sort(() => Math.random() - 0.5);
 
             io.to(roomId).emit('gameStarted', {
@@ -94,7 +96,7 @@ io.on('connection', (socket) => {
         if (!room) return;
 
         room.scores[socket.id] += turnDelta;
-        if(correctPlacements === 6) { room.scores[socket.id] += 6; } 
+        if(correctPlacements === 4) { room.scores[socket.id] += 4; } // Yeni 4'lü Bingo Bonusu
         if(wordBonus > 0) { room.scores[socket.id] += wordBonus; }   
 
         room.puzzle = updatedPuzzle;
@@ -109,7 +111,7 @@ io.on('connection', (socket) => {
             puzzle: room.puzzle,
             letterPool: room.letterPool,
             activePlayer: nextPlayer,
-            lastBingoOwner: correctPlacements === 6 ? socket.id : null,
+            lastBingoOwner: correctPlacements === 4 ? socket.id : null,
             lastWordBonus: wordBonus > 0 ? { owner: socket.id, points: wordBonus } : null
         });
     });

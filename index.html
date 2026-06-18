@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Crossword Duel - Mobil Uyumlu</title>
+    <title>Crossword Duel - Dinamik Versiyon</title>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800&family=Roboto:wght@500;700;900&display=swap" rel="stylesheet">
     <script src="/socket.io/socket.io.js"></script>
     <style>
@@ -17,28 +17,33 @@
         .btn-join { background: #3b82f6; box-shadow: 0 5px 0 #2563eb; } .btn-join:active { transform: translateY(5px); box-shadow: none; }
         .input-code { width: 100%; padding: 14px; border: 2px solid #cbd5e1; border-radius: 12px; font-size: 18px; text-align: center; margin-bottom: 15px; text-transform: uppercase; font-weight: 700; }
         .waiting-text { font-size: 16px; font-weight: 700; color: #64748b; margin-top: 15px; display: none; }
-        .app-container { display: none; width: 100%; max-width: 440px; background-color: var(--bg-app); flex-direction: column; border-radius: 24px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6); overflow: hidden; position: relative; }
+        
+        .app-container { display: none; width: 100%; max-width: 500px; background-color: var(--bg-app); flex-direction: column; border-radius: 24px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6); overflow: hidden; position: relative; }
         .header { display: flex; justify-content: space-between; align-items: center; padding: 18px 25px; background: #ffffff; border-bottom: 2px solid #e2e8f0; }
         .player-badge { display: flex; align-items: center; gap: 10px; padding: 8px 18px; border-radius: 30px; background: #f1f5f9; border: 2px solid #cbd5e1; transition: all 0.3s; }
         .player-badge.active-turn { background: #f0fdf4; border-color: #4ade80; box-shadow: 0 0 15px rgba(74, 222, 128, 0.4); }
         .p-name { font-size: 12px; font-weight: 700; color: var(--text-dark); max-width: 80px; overflow: hidden; text-overflow: ellipsis; }
         .p-score { font-size: 26px; font-weight: 800; color: #1e293b; }
         .vs { font-weight: 800; color: #94a3b8; font-size: 15px; }
-        .board-wrapper { padding: 10px; background-color: #e2e8f0; position: relative; display: flex; align-items: center; justify-content: center; min-height: 400px;}
-        .grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 5px; width: 100%; background: transparent; border: none; }
-        .cell { aspect-ratio: 1; position: relative; display: flex; justify-content: center; align-items: center; font-size: 28px; font-weight: 800; color: var(--text-dark); text-transform: uppercase; border-radius: 12px; cursor: pointer; }
-        .cell-blank { background: transparent; border: none; box-shadow: none; pointer-events: none; }
-        .cell-logo { background: linear-gradient(135deg, #10b981, #3b82f6); color: white; box-shadow: 0 4px 0 #059669; border-radius: 12px; display: flex; flex-direction: column; justify-content: center; align-items: center; font-size: 10px; font-weight: 900; line-height: 1.2; text-align: center; }
-        .cell-clue { background-color: var(--clue-bg); box-shadow: 0 4px 0 var(--clue-shadow); flex-direction: column; padding: 4px; text-align: center; }
-        .clue-text { font-size: 8px; font-weight: 800; line-height: 1.1; color: var(--clue-text); font-family: 'Roboto', sans-serif; }
-        .arrow { position: absolute; font-size: 11px; font-weight: 900; color: #047857; }
-        .arrow-down { bottom: 2px; left: 50%; transform: translateX(-50%); }
-        .arrow-right { right: 2px; top: 50%; transform: translateY(-50%); }
-        .cell-empty { background-color: #ffffff; box-shadow: 0 4px 0 #cbd5e1; transition: all 0.2s; }
         
-        .cell-correct { background-color: var(--success) !important; box-shadow: 0 4px 0 #16a34a !important; color: white !important; animation: popIn 0.3s ease-out; }
-        .cell-other-correct { background-color: var(--p2-color) !important; box-shadow: 0 4px 0 #2563eb !important; color: white !important; animation: popIn 0.3s ease-out; }
-        .cell-wrong { background-color: var(--error) !important; box-shadow: 0 4px 0 #dc2626 !important; color: white !important; animation: shake 0.4s ease-in-out; }
+        .board-wrapper { padding: 10px; background-color: #e2e8f0; position: relative; display: flex; align-items: center; justify-content: center; min-height: 420px;}
+        
+        /* GRİD ARTIK TAMAMEN DİNAMİK CSS DEĞİŞKENİYLE ÇALIŞIYOR */
+        .grid { display: grid; gap: 4px; width: 100%; background: transparent; border: none; }
+        
+        .cell { aspect-ratio: 1; position: relative; display: flex; justify-content: center; align-items: center; font-size: 20px; font-weight: 800; color: var(--text-dark); text-transform: uppercase; border-radius: 10px; cursor: pointer; }
+        .cell-blank { background: #cbd5e1; opacity: 0.2; pointer-events: none; }
+        .cell-logo { background: linear-gradient(135deg, #10b981, #3b82f6); color: white; box-shadow: 0 3px 0 #059669; border-radius: 10px; display: flex; flex-direction: column; justify-content: center; align-items: center; font-size: 8px; font-weight: 900; line-height: 1.1; text-align: center; }
+        .cell-clue { background-color: var(--clue-bg); box-shadow: 0 3px 0 var(--clue-shadow); flex-direction: column; padding: 2px; text-align: center; }
+        .clue-text { font-size: 7px; font-weight: 800; line-height: 1.1; color: var(--clue-text); font-family: 'Roboto', sans-serif; word-break: break-word; }
+        .arrow { position: absolute; font-size: 9px; font-weight: 900; color: #047857; }
+        .arrow-down { bottom: 1px; left: 50%; transform: translateX(-50%); }
+        .arrow-right { right: 1px; top: 50%; transform: translateY(-50%); }
+        .cell-empty { background-color: #ffffff; box-shadow: 0 3px 0 #cbd5e1; transition: all 0.2s; }
+        
+        .cell-correct { background-color: var(--success) !important; box-shadow: 0 3px 0 #16a34a !important; color: white !important; animation: popIn 0.3s ease-out; }
+        .cell-other-correct { background-color: var(--p2-color) !important; box-shadow: 0 3px 0 #2563eb !important; color: white !important; animation: popIn 0.3s ease-out; }
+        .cell-wrong { background-color: var(--error) !important; box-shadow: 0 3px 0 #dc2626 !important; color: white !important; animation: shake 0.4s ease-in-out; }
         .bonus-popup { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); background: #fbbf24; color: #78350f; padding: 12px 24px; border-radius: 20px; font-size: 20px; font-weight: 800; box-shadow: 0 10px 25px rgba(0,0,0,0.4); opacity: 0; pointer-events: none; z-index: 50; transition: opacity 0.3s; text-align: center; }
         .bonus-popup.show { opacity: 1; animation: floatUp 1.5s ease-out forwards; }
         .game-over-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.95); display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 100; color: white; text-align: center; }
@@ -49,12 +54,9 @@
         .info-text { text-align: center; font-size: 13px; color: #64748b; margin-bottom: 12px; font-weight: 700; }
         .rack { display: flex; justify-content: center; gap: 8px; min-height: 70px; padding: 12px; background: #f8fafc; border-radius: 16px; border: 2px dashed #cbd5e1; margin-bottom: 20px; cursor: pointer; }
         
-        /* SEÇİM (DOKUNMA) EFEKTLERİ */
-        .tile { width: 50px; height: 55px; background-color: var(--tile-bg); border: 2px solid var(--tile-border); border-radius: 12px; display: flex; justify-content: center; align-items: center; font-size: 26px; font-weight: 800; color: var(--tile-text); cursor: pointer; box-shadow: 0 4px 0 #ea580c; transition: all 0.2s; }
-        .placed-tile { width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; background-color: #fef3c7; color: #b45309; font-size: 28px; font-weight: 800; border-radius: 10px; cursor: pointer; transition: all 0.2s; }
-        
-        /* Parlama (Seçili Harf) Kuralı */
-        .tile.selected, .placed-tile.selected { border: 3px solid #3b82f6; transform: scale(1.1); box-shadow: 0 0 15px rgba(59, 130, 246, 0.6); z-index: 5; }
+        .tile { width: 52px; height: 55px; background-color: var(--tile-bg); border: 2px solid var(--tile-border); border-radius: 12px; display: flex; justify-content: center; align-items: center; font-size: 26px; font-weight: 800; color: var(--tile-text); cursor: pointer; box-shadow: 0 4px 0 #ea580c; transition: all 0.2s; }
+        .placed-tile { width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; background-color: #fef3c7; color: #b45309; font-size: 22px; font-weight: 800; border-radius: 8px; cursor: pointer; transition: all 0.2s; }
+        .tile.selected { border: 3px solid #3b82f6; transform: scale(1.1); box-shadow: 0 0 15px rgba(59, 130, 246, 0.6); z-index: 5; }
 
         .btn-pas { width: 100%; padding: 18px; background-color: #94a3b8; color: white; border: none; border-radius: 16px; font-size: 20px; font-weight: 800; cursor: pointer; box-shadow: 0 6px 0 #64748b; transition: all 0.2s; }
         .btn-pas:active { transform: translateY(6px); box-shadow: 0 0 0 transparent; }
@@ -117,8 +119,6 @@
         let activePuzzle = null;
         let letterPool = [];
         let isMyTurn = false;
-        
-        // Yeni "Dokun-Seç" mekanizması için
         let selectedTile = null;
 
         socket.on('connect', () => { myId = socket.id; });
@@ -136,21 +136,24 @@
         });
 
         socket.on('errorMsg', (msg) => { 
-            alert(msg); 
-            if(msg.includes('koptu')) location.reload(); 
+            alert(msg); if(msg.includes('koptu')) location.reload(); 
         });
 
         socket.on('gameStarted', (data) => {
             currentRoomId = data.roomId; activePuzzle = data.puzzle; letterPool = data.letterPool;
             document.getElementById('lobby').style.display = 'none'; document.getElementById('game-area').style.display = 'flex';
-            document.getElementById('name-p1').innerText = "Siz"; document.getElementById('name-p2').innerText = "Rakip";
+            
+            // Izgarayı gelen boyuta göre dinamik şekillendir
+            const gridEl = document.getElementById('grid');
+            gridEl.style.gridTemplateColumns = `repeat(${activePuzzle.cols}, 1fr)`;
+
             renderBoard(); updateGameState(data);
         });
 
         function renderBoard() {
             const grid = document.getElementById('grid'); grid.innerHTML = '';
-            for(let r=0; r<6; r++) {
-                for(let c=0; c<6; c++) {
+            for(let r=0; r<activePuzzle.rows; r++) {
+                for(let c=0; c<activePuzzle.cols; c++) {
                     const cellData = activePuzzle.matrix[r][c];
                     const cell = document.createElement('div'); cell.className = 'cell';
 
@@ -165,38 +168,25 @@
                         cell.classList.add('cell-empty'); cell.dataset.r = r; cell.dataset.c = c;
                         cell.dataset.words = JSON.stringify(cellData.words || []);
                         
-                        // KUTUYA TIKLAMA OLAYI
                         cell.addEventListener('click', () => {
                             if(!isMyTurn || !selectedTile || !cell.classList.contains('cell-empty')) return;
-                            
-                            // Eğer kutuda zaten harf varsa, onu geri havuza yolla
                             if(cell.children.length > 0) {
-                                const existingTile = cell.children[0];
-                                existingTile.className = 'tile';
+                                const existingTile = cell.children[0]; existingTile.className = 'tile';
                                 document.getElementById('rack').appendChild(existingTile);
                             }
-                            
-                            // Seçili harfi kutuya yerleştir
-                            selectedTile.className = 'placed-tile';
-                            selectedTile.classList.remove('selected');
-                            cell.appendChild(selectedTile);
-                            selectedTile = null;
-                            updateButtonState();
+                            selectedTile.className = 'placed-tile'; selectedTile.classList.remove('selected');
+                            cell.appendChild(selectedTile); selectedTile = null; updateButtonState();
                         });
                     }
                     grid.appendChild(cell);
                 }
             }
             
-            // RAFA TIKLAMA OLAYI (Geri Almak İçin)
             const rack = document.getElementById('rack');
             rack.addEventListener('click', (e) => {
                 if(!isMyTurn || !selectedTile || e.target.classList.contains('tile')) return;
-                selectedTile.className = 'tile';
-                selectedTile.classList.remove('selected');
-                rack.appendChild(selectedTile);
-                selectedTile = null;
-                updateButtonState();
+                selectedTile.className = 'tile'; selectedTile.classList.remove('selected');
+                rack.appendChild(selectedTile); selectedTile = null; updateButtonState();
             });
         }
 
@@ -205,8 +195,7 @@
             document.getElementById('score-p1').innerText = data.scores ? (data.scores[myId] || 0) : 0;
             document.getElementById('score-p2').innerText = data.scores && opponentId ? (data.scores[opponentId] || 0) : 0;
 
-            isMyTurn = data.activePlayer === myId;
-            selectedTile = null; // Sıra değişince seçimi sıfırla
+            isMyTurn = data.activePlayer === myId; selectedTile = null;
             
             if(isMyTurn) {
                 document.getElementById('turn-overlay').classList.remove('active');
@@ -230,11 +219,10 @@
                 }
             });
 
-            if(data.lastBingoOwner && data.lastBingoOwner === myId) { showBonusPopup(6, "SİZİN", "EL BOŞALTMA"); }
+            if(data.lastBingoOwner && data.lastBingoOwner === myId) { showBonusPopup(4, "SİZİN", "EL BOŞALTMA"); }
             if(data.lastWordBonus && data.lastWordBonus.owner === myId) {
                 setTimeout(() => { showBonusPopup(data.lastWordBonus.points, "SİZİN", "KELİME"); }, data.lastBingoOwner ? 2500 : 0);
             }
-            
             updateGameState(data);
         });
 
@@ -242,7 +230,9 @@
             const rack = document.getElementById('rack');
             if(!isMyTurn) return; 
             let currentTileCount = rack.querySelectorAll('.tile').length;
-            while(currentTileCount < 6 && letterPool.length > 0) {
+            
+            // TUR BAŞI HARF TAKTİKSEL OLARAK 4'E DÜŞÜRÜLDÜ!
+            while(currentTileCount < 4 && letterPool.length > 0) {
                 let letter = letterPool.pop(); rack.appendChild(createTile(letter, `tile-${Date.now()}-${letterPool.length}`)); currentTileCount++;
             }
         }
@@ -251,26 +241,12 @@
 
         function createTile(letter, id) {
             const tile = document.createElement('div'); tile.className = 'tile'; tile.innerText = letter; tile.id = id;
-            
-            // HARFE TIKLAMA OLAYI (SEÇİM)
             tile.addEventListener('click', (e) => {
-                e.stopPropagation(); // Tıklamanın rafa geçmesini engelle
-                if(!isMyTurn) return;
-                
-                // Eğer zaten seçiliyse seçimi bırak
-                if(selectedTile === tile) {
-                    tile.classList.remove('selected');
-                    selectedTile = null;
-                    return;
-                }
-                
-                // Başka bir harf seçiliyse onun parlaklığını al
+                e.stopPropagation(); if(!isMyTurn) return;
+                if(selectedTile === tile) { tile.classList.remove('selected'); selectedTile = null; return; }
                 if(selectedTile) selectedTile.classList.remove('selected');
-                
-                selectedTile = tile;
-                tile.classList.add('selected');
+                selectedTile = tile; tile.classList.add('selected');
             });
-            
             return tile;
         }
 
@@ -293,7 +269,10 @@
                             if(cell.classList.contains('cell-empty') && cell.children.length === 0) { isWordFilled = false; }
                         }
                     });
-                    if(isWordFilled) { wordData.completed = true; totalBonus += wordData.length; }
+                    if(isWordFilled) { 
+                        wordData.completed = true; 
+                        totalBonus += wordData.length; // KELİME BOYUTU KADAR BONUS (3 Harf = +3, 6 Harf = +6!)
+                    }
                 }
             }
             return totalBonus;
