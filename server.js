@@ -10,7 +10,6 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// BULMACA HAVUZU VE KELİME SÖZLÜĞÜ
 const puzzleDatabase = [
     {
         id: 1,
@@ -86,14 +85,13 @@ io.on('connection', (socket) => {
         }
     });
 
-    // İKİ FARKLI BONUS (BİNGO VE KELİME) SUNUCUYA İLETİLİYOR
     socket.on('submitTurn', ({ roomId, turnDelta, correctPlacements, wordBonus, updatedPuzzle, remainingPool }) => {
         const room = rooms[roomId];
         if (!room) return;
 
         room.scores[socket.id] += turnDelta;
-        if(correctPlacements === 6) { room.scores[socket.id] += 6; } // Bingo Bonusu
-        if(wordBonus > 0) { room.scores[socket.id] += wordBonus; }   // Kelime Tamamlama Bonusu
+        if(correctPlacements === 6) { room.scores[socket.id] += 6; } 
+        if(wordBonus > 0) { room.scores[socket.id] += wordBonus; }   
 
         room.puzzle = updatedPuzzle;
         room.letterPool = remainingPool;
@@ -112,8 +110,21 @@ io.on('connection', (socket) => {
         });
     });
 
+    // HAYALET OYUNCU TEMİZLEYİCİSİ
     socket.on('disconnect', () => {
         console.log('❌ Bağlantı koptu:', socket.id);
+        for (const roomId in rooms) {
+            const room = rooms[roomId];
+            const playerIndex = room.players.indexOf(socket.id);
+            if (playerIndex !== -1) {
+                room.players.splice(playerIndex, 1);
+                io.to(roomId).emit('errorMsg', 'Rakibinin bağlantısı koptu. Sayfayı yenileyip yeni oda kurabilirsin.');
+                
+                if (room.players.length === 0) {
+                    delete rooms[roomId]; // Oda boşsa tamamen imha et
+                }
+            }
+        }
     });
 });
 

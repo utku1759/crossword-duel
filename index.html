@@ -6,6 +6,10 @@
     <title>Crossword Duel - Multiplayer</title>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800&family=Roboto:wght@500;700;900&display=swap" rel="stylesheet">
     <script src="/socket.io/socket.io.js"></script>
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/mobile-drag-drop@2.3.0-rc.2/default.css">
+    <script src="https://cdn.jsdelivr.net/npm/mobile-drag-drop@2.3.0-rc.2/index.min.js"></script>
+    
     <style>
         :root { --bg-body: #0f172a; --bg-app: #f8fafc; --clue-bg: #d1fae5; --clue-shadow: #34d399; --text-dark: #0f172a; --clue-text: #064e3b; --success: #22c55e; --error: #ef4444; --p2-color: #3b82f6; --tile-bg: #ffedd5; --tile-border: #f97316; --tile-text: #c2410c; }
         * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; font-family: 'Montserrat', sans-serif; }
@@ -49,16 +53,18 @@
         .info-text { text-align: center; font-size: 13px; color: #64748b; margin-bottom: 12px; font-weight: 700; }
         .rack { display: flex; justify-content: center; gap: 8px; min-height: 70px; padding: 12px; background: #f8fafc; border-radius: 16px; border: 2px dashed #cbd5e1; margin-bottom: 20px; transition: all 0.2s; }
         .rack.drag-over { background-color: #f1f5f9; border-color: #94a3b8; }
-        .tile { width: 50px; height: 55px; background-color: var(--tile-bg); border: 2px solid var(--tile-border); border-radius: 12px; display: flex; justify-content: center; align-items: center; font-size: 26px; font-weight: 800; color: var(--tile-text); cursor: grab; box-shadow: 0 4px 0 #ea580c; transition: transform 0.1s; }
+        
+        /* TELEFONDA KAYDIRMAYI ENGELLEYEN VE SÜRÜKLEMEYE İZİN VEREN KOD */
+        .tile { touch-action: none; width: 50px; height: 55px; background-color: var(--tile-bg); border: 2px solid var(--tile-border); border-radius: 12px; display: flex; justify-content: center; align-items: center; font-size: 26px; font-weight: 800; color: var(--tile-text); cursor: grab; box-shadow: 0 4px 0 #ea580c; transition: transform 0.1s; }
+        
         .tile:active { cursor: grabbing; transform: scale(0.95); }
         .tile.dragging { opacity: 0.5; }
-        .placed-tile { width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; background-color: #fef3c7; color: #b45309; cursor: grab; font-size: 28px; font-weight: 800; border-radius: 10px; }
+        .placed-tile { touch-action: none; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; background-color: #fef3c7; color: #b45309; cursor: grab; font-size: 28px; font-weight: 800; border-radius: 10px; }
         .btn-pas { width: 100%; padding: 18px; background-color: #94a3b8; color: white; border: none; border-radius: 16px; font-size: 20px; font-weight: 800; cursor: pointer; box-shadow: 0 6px 0 #64748b; transition: all 0.2s; }
         .btn-pas:active { transform: translateY(6px); box-shadow: 0 0 0 transparent; }
         .btn-pulse { background-color: var(--success); box-shadow: 0 6px 0 #16a34a; animation: pulse-btn 1.5s infinite; }
         @keyframes pulse-btn { 0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.6), 0 6px 0 #16a34a; } 70% { box-shadow: 0 0 0 15px rgba(34, 197, 94, 0), 0 6px 0 #16a34a; } 100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0), 0 6px 0 #16a34a; } }
         @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
-        @keyframes spin { 100% { transform: rotate(360deg); } }
         @keyframes popIn { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
         @keyframes floatUp { 0% { transform: translate(-50%, -50%) scale(0.8); opacity: 1; } 100% { transform: translate(-50%, -150%) scale(1.1); opacity: 0; } }
     </style>
@@ -108,6 +114,10 @@
     </div>
 
     <script>
+        // TELEFON İÇİN POLYFILL BAŞLATICI
+        MobileDragDrop.polyfill({ holdToDrag: 0 });
+        window.addEventListener('touchmove', function() {}, {passive: false});
+
         const socket = io();
 
         let currentRoomId = null;
@@ -131,7 +141,10 @@
             document.getElementById('waiting-msg').style.display = 'block';
         });
 
-        socket.on('errorMsg', (msg) => { alert(msg); });
+        socket.on('errorMsg', (msg) => { 
+            alert(msg); 
+            if(msg.includes('koptu')) location.reload(); // Rakip çıkarsa sayfayı yenile
+        });
 
         socket.on('gameStarted', (data) => {
             currentRoomId = data.roomId; activePuzzle = data.puzzle; letterPool = data.letterPool;
@@ -195,7 +208,6 @@
                 }
             });
 
-            // GÖRSEL BONUS POPUPLARI
             if(data.lastBingoOwner && data.lastBingoOwner === myId) { showBonusPopup(6, "SİZİN", "EL BOŞALTMA"); }
             if(data.lastWordBonus && data.lastWordBonus.owner === myId) {
                 setTimeout(() => { showBonusPopup(data.lastWordBonus.points, "SİZİN", "KELİME"); }, data.lastBingoOwner ? 2500 : 0);
@@ -217,7 +229,11 @@
 
         function createTile(letter, id) {
             const tile = document.createElement('div'); tile.className = 'tile'; tile.draggable = true; tile.innerText = letter; tile.id = id;
-            tile.addEventListener('dragstart', () => { draggedElement = tile; setTimeout(() => tile.classList.add('dragging'), 0); });
+            tile.addEventListener('dragstart', (e) => { 
+                draggedElement = tile; 
+                if(e.dataTransfer) { e.dataTransfer.setData('text/plain', ''); } // Telefon çevirmeni için zorunlu
+                setTimeout(() => tile.classList.add('dragging'), 0); 
+            });
             tile.addEventListener('dragend', () => { tile.classList.remove('dragging'); draggedElement = null; document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over')); });
             return tile;
         }
@@ -233,7 +249,6 @@
             if(placedCount > 0) { btn.innerText = "Hamleyi Onayla & Bitir"; btn.classList.add('btn-pulse'); } else { btn.innerText = "Pas Geç"; btn.classList.remove('btn-pulse'); }
         }
 
-        // KELİME KONTROLCÜSÜ GERİ GELDİ
         function checkWordCompletions() {
             let totalBonus = 0;
             const allPlayableCells = document.querySelectorAll('.cell-empty, .cell-correct, .cell-other-correct');
@@ -244,7 +259,6 @@
                     allPlayableCells.forEach(cell => {
                         let cellWords = JSON.parse(cell.dataset.words || "[]");
                         if(cellWords.includes(parseInt(wordId))) {
-                            // İçinde harf yoksa veya bizim henüz onaylamadığımız bir hamleyse
                             if(cell.classList.contains('cell-empty') && cell.children.length === 0) {
                                 isWordFilled = false;
                             }
@@ -282,7 +296,6 @@
                 }
             });
 
-            // Hatalı harfleri çıkarıp kelimenin bitip bitmediğini anla
             let wordBonus = (wrongTiles.length === 0) ? checkWordCompletions() : 0;
 
             if(wrongTiles.length > 0) {
