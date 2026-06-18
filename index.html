@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crossword Duel - Multiplayer</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800&family=Roboto:wght@500;700;900&display=swap" rel="stylesheet">
+    <script src="/socket.io/socket.io.js"></script>
+    <style>
+        :root { --bg-body: #0f172a; --bg-app: #f8fafc; --clue-bg: #d1fae5; --clue-shadow: #34d399; --text-dark: #0f172a; --clue-text: #064e3b; --success: #22c55e; --error: #ef4444; --p2-color: #3b82f6; --tile-bg: #ffedd5; --tile-border: #f97316; --tile-text: #c2410c; }
+        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; font-family: 'Montserrat', sans-serif; }
+        body { background-color: var(--bg-body); display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 15px; }
+        .lobby-container { width: 100%; max-width: 440px; background: white; padding: 40px 30px; border-radius: 24px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
+        .lobby-title { font-size: 32px; font-weight: 800; margin-bottom: 30px; background: linear-gradient(135deg, #10b981, #3b82f6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .lobby-btn { width: 100%; padding: 16px; border: none; border-radius: 14px; font-size: 18px; font-weight: 700; cursor: pointer; margin-bottom: 15px; transition: all 0.2s; color: white; }
+        .btn-create { background: #10b981; box-shadow: 0 5px 0 #059669; } .btn-create:active { transform: translateY(5px); box-shadow: none; }
+        .btn-join { background: #3b82f6; box-shadow: 0 5px 0 #2563eb; } .btn-join:active { transform: translateY(5px); box-shadow: none; }
+        .input-code { width: 100%; padding: 14px; border: 2px solid #cbd5e1; border-radius: 12px; font-size: 18px; text-align: center; margin-bottom: 15px; text-transform: uppercase; font-weight: 700; }
+        .waiting-text { font-size: 16px; font-weight: 700; color: #64748b; margin-top: 15px; display: none; }
+        .app-container { display: none; width: 100%; max-width: 440px; background-color: var(--bg-app); flex-direction: column; border-radius: 24px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6); overflow: hidden; position: relative; }
+        .header { display: flex; justify-content: space-between; align-items: center; padding: 18px 25px; background: #ffffff; border-bottom: 2px solid #e2e8f0; }
+        .player-badge { display: flex; align-items: center; gap: 10px; padding: 8px 18px; border-radius: 30px; background: #f1f5f9; border: 2px solid #cbd5e1; transition: all 0.3s; }
+        .player-badge.active-turn { background: #f0fdf4; border-color: #4ade80; box-shadow: 0 0 15px rgba(74, 222, 128, 0.4); }
+        .p-name { font-size: 12px; font-weight: 700; color: var(--text-dark); max-width: 80px; overflow: hidden; text-overflow: ellipsis; }
+        .p-score { font-size: 26px; font-weight: 800; color: #1e293b; }
+        .vs { font-weight: 800; color: #94a3b8; font-size: 15px; }
+        .board-wrapper { padding: 10px; background-color: #e2e8f0; position: relative; display: flex; align-items: center; justify-content: center; min-height: 400px;}
+        .grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 5px; width: 100%; background: transparent; border: none; }
+        .cell { aspect-ratio: 1; position: relative; display: flex; justify-content: center; align-items: center; font-size: 28px; font-weight: 800; color: var(--text-dark); text-transform: uppercase; border-radius: 12px; }
+        .cell-blank { background: transparent; border: none; box-shadow: none; pointer-events: none; }
+        .cell-logo { background: linear-gradient(135deg, #10b981, #3b82f6); color: white; box-shadow: 0 4px 0 #059669; border-radius: 12px; display: flex; flex-direction: column; justify-content: center; align-items: center; font-size: 10px; font-weight: 900; line-height: 1.2; text-align: center; }
+        .cell-clue { background-color: var(--clue-bg); box-shadow: 0 4px 0 var(--clue-shadow); flex-direction: column; padding: 4px; text-align: center; }
+        .clue-text { font-size: 8px; font-weight: 800; line-height: 1.1; color: var(--clue-text); font-family: 'Roboto', sans-serif; }
+        .arrow { position: absolute; font-size: 11px; font-weight: 900; color: #047857; }
+        .arrow-down { bottom: 2px; left: 50%; transform: translateX(-50%); }
+        .arrow-right { right: 2px; top: 50%; transform: translateY(-50%); }
+        .cell-empty { background-color: #ffffff; box-shadow: 0 4px 0 #cbd5e1; transition: background-color 0.2s; }
+        .cell-empty.drag-over { background-color: #fef08a; box-shadow: 0 4px 0 #eab308; }
+        .cell-correct { background-color: var(--success) !important; box-shadow: 0 4px 0 #16a34a !important; color: white !important; animation: popIn 0.3s ease-out; }
+        .cell-other-correct { background-color: var(--p2-color) !important; box-shadow: 0 4px 0 #2563eb !important; color: white !important; animation: popIn 0.3s ease-out; }
+        .cell-wrong { background-color: var(--error) !important; box-shadow: 0 4px 0 #dc2626 !important; color: white !important; animation: shake 0.4s ease-in-out; }
+        .bonus-popup { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); background: #fbbf24; color: #78350f; padding: 12px 24px; border-radius: 20px; font-size: 20px; font-weight: 800; box-shadow: 0 10px 25px rgba(0,0,0,0.4); opacity: 0; pointer-events: none; z-index: 50; transition: opacity 0.3s; text-align: center; }
+        .bonus-popup.show { opacity: 1; animation: floatUp 1.5s ease-out forwards; }
+        .game-over-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.95); display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 100; color: white; text-align: center; }
+        .footer-controls { padding: 20px 25px; background-color: #ffffff; border-top: 2px solid #e2e8f0; position: relative; border-radius: 0 0 24px 24px; }
+        .turn-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(2px); display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 10; border-radius: 0 0 24px 24px; }
+        .turn-overlay.active { display: flex; }
+        .thinking-spinner { width: 35px; height: 35px; border: 4px solid #cbd5e1; border-top-color: var(--p2-color); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 10px; }
+        .info-text { text-align: center; font-size: 13px; color: #64748b; margin-bottom: 12px; font-weight: 700; }
+        .rack { display: flex; justify-content: center; gap: 8px; min-height: 70px; padding: 12px; background: #f8fafc; border-radius: 16px; border: 2px dashed #cbd5e1; margin-bottom: 20px; transition: all 0.2s; }
+        .rack.drag-over { background-color: #f1f5f9; border-color: #94a3b8; }
+        .tile { width: 50px; height: 55px; background-color: var(--tile-bg); border: 2px solid var(--tile-border); border-radius: 12px; display: flex; justify-content: center; align-items: center; font-size: 26px; font-weight: 800; color: var(--tile-text); cursor: grab; box-shadow: 0 4px 0 #ea580c; transition: transform 0.1s; }
+        .tile:active { cursor: grabbing; transform: scale(0.95); }
+        .tile.dragging { opacity: 0.5; }
+        .placed-tile { width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; background-color: #fef3c7; color: #b45309; cursor: grab; font-size: 28px; font-weight: 800; border-radius: 10px; }
+        .btn-pas { width: 100%; padding: 18px; background-color: #94a3b8; color: white; border: none; border-radius: 16px; font-size: 20px; font-weight: 800; cursor: pointer; box-shadow: 0 6px 0 #64748b; transition: all 0.2s; }
+        .btn-pas:active { transform: translateY(6px); box-shadow: 0 0 0 transparent; }
+        .btn-pulse { background-color: var(--success); box-shadow: 0 6px 0 #16a34a; animation: pulse-btn 1.5s infinite; }
+        @keyframes pulse-btn { 0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.6), 0 6px 0 #16a34a; } 70% { box-shadow: 0 0 0 15px rgba(34, 197, 94, 0), 0 6px 0 #16a34a; } 100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0), 0 6px 0 #16a34a; } }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        @keyframes popIn { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+        @keyframes floatUp { 0% { transform: translate(-50%, -50%) scale(0.8); opacity: 1; } 100% { transform: translate(-50%, -150%) scale(1.1); opacity: 0; } }
+    </style>
+</head>
+<body>
+    <div class="lobby-container" id="lobby">
+        <h1 class="lobby-title">Crossword Duel</h1>
+        <button class="lobby-btn btn-create" onclick="createRoom()">Oda Oluştur</button>
+        <div style="margin: 15px 0; color: #94a3b8; font-weight: bold;">VEYA</div>
+        <input type="text" class="input-code" id="room-input" placeholder="ODA KODUNU GİR">
+        <button class="lobby-btn btn-join" onclick="joinRoom()">Odaya Katıl</button>
+        <div class="waiting-text" id="waiting-msg">Oda kuruldu! Kod: <span id="display-code" style="color:#10b981; font-size:24px;">----</span><br><br>Arkadaşının katılması bekleniyor...</div>
+    </div>
+
+    <div class="app-container" id="game-area">
+        <div class="header">
+            <div class="player-badge" id="badge-p1">
+                <span class="p-name" id="name-p1">Siz</span>
+                <span class="p-score" id="score-p1" style="color: var(--success)">0</span>
+            </div>
+            <span class="vs">VS</span>
+            <div class="player-badge" id="badge-p2">
+                <span class="p-score" id="score-p2" style="color: var(--p2-color)">0</span>
+                <span class="p-name" id="name-p2">Rakip</span>
+            </div>
+        </div>
+
+        <div class="board-wrapper">
+            <div class="grid" id="grid"></div>
+            <div class="bonus-popup" id="bonus-popup"></div>
+            <div class="game-over-overlay" id="game-over">
+                <h1 style="color: #fbbf24; font-size: 40px; margin-bottom: 10px;">MAÇ BİTTİ!</h1>
+                <h2 id="winner-text" style="margin-bottom: 30px;">-</h2>
+                <button onclick="location.reload()" style="padding: 15px 30px; font-size: 18px; border-radius: 12px; border:none; background:white; color:black; font-weight:bold; cursor:pointer;">Lobiye Dön</button>
+            </div>
+        </div>
+
+        <div class="footer-controls">
+            <div class="turn-overlay" id="turn-overlay">
+                <div class="thinking-spinner"></div>
+                <h3 style="color: var(--p2-color); font-size: 18px;">Rakibin oynaması bekleniyor...</h3>
+            </div>
+            <div class="info-text" id="pool-info">Havuzdaki Kalan Harf: --</div>
+            <div class="rack" id="rack"></div>
+            <button class="btn-pas" id="btn-pas" onclick="finishTurn()">Pas Geç</button>
+        </div>
+    </div>
+
+    <script>
+        const socket = io();
+
+        let currentRoomId = null;
+        let myId = null;
+        let activePuzzle = null;
+        let letterPool = [];
+        let isMyTurn = false;
+        let draggedElement = null;
+
+        socket.on('connect', () => { myId = socket.id; });
+
+        function createRoom() { socket.emit('createRoom'); }
+        function joinRoom() {
+            const code = document.getElementById('room-input').value.trim();
+            if(code) socket.emit('joinRoom', code);
+        }
+
+        socket.on('roomCreated', (roomId) => {
+            currentRoomId = roomId;
+            document.getElementById('display-code').innerText = roomId;
+            document.getElementById('waiting-msg').style.display = 'block';
+        });
+
+        socket.on('errorMsg', (msg) => { alert(msg); });
+
+        socket.on('gameStarted', (data) => {
+            currentRoomId = data.roomId; activePuzzle = data.puzzle; letterPool = data.letterPool;
+            document.getElementById('lobby').style.display = 'none'; document.getElementById('game-area').style.display = 'flex';
+            document.getElementById('name-p1').innerText = "Siz"; document.getElementById('name-p2').innerText = "Rakip";
+            renderBoard(); updateGameState(data);
+        });
+
+        function renderBoard() {
+            const grid = document.getElementById('grid'); grid.innerHTML = '';
+            for(let r=0; r<6; r++) {
+                for(let c=0; c<6; c++) {
+                    const cellData = activePuzzle.matrix[r][c];
+                    const cell = document.createElement('div'); cell.className = 'cell';
+
+                    if(cellData.t === 'blank') { cell.classList.add('cell-blank'); } 
+                    else if(cellData.t === 'logo') { cell.className = 'cell cell-logo'; cell.innerHTML = cellData.text; } 
+                    else if(cellData.t === 'c') {
+                        cell.classList.add('cell-clue'); cell.innerHTML = `<span class="clue-text">${cellData.text}</span>`;
+                        if(cellData.dir === 'down') cell.innerHTML += `<span class="arrow arrow-down">▼</span>`;
+                        if(cellData.dir === 'right') cell.innerHTML += `<span class="arrow arrow-right">►</span>`;
+                    }
+                    else if(cellData.t === 'w' || cellData.t === myId || (cellData.t !== 'w' && cellData.t !== 'blank' && cellData.t !== 'logo')) {
+                        cell.classList.add('cell-empty'); cell.dataset.r = r; cell.dataset.c = c;
+                        cell.dataset.words = JSON.stringify(cellData.words || []);
+                        cell.addEventListener('dragover', handleDragOver); cell.addEventListener('dragleave', handleDragLeave); cell.addEventListener('drop', handleDrop);
+                    }
+                    grid.appendChild(cell);
+                }
+            }
+            const rack = document.getElementById('rack');
+            rack.addEventListener('dragover', handleDragOver); rack.addEventListener('dragleave', handleDragLeave); rack.addEventListener('drop', handleDropToRack);
+        }
+
+        function updateGameState(data) {
+            const opponentId = data.players.find(id => id !== myId);
+            document.getElementById('score-p1').innerText = data.scores ? (data.scores[myId] || 0) : 0;
+            document.getElementById('score-p2').innerText = data.scores && opponentId ? (data.scores[opponentId] || 0) : 0;
+
+            isMyTurn = data.activePlayer === myId;
+            
+            if(isMyTurn) {
+                document.getElementById('turn-overlay').classList.remove('active');
+                document.getElementById('badge-p1').classList.add('active-turn'); document.getElementById('badge-p2').classList.remove('active-turn');
+            } else {
+                document.getElementById('turn-overlay').classList.add('active');
+                document.getElementById('badge-p2').classList.add('active-turn'); document.getElementById('badge-p1').classList.remove('active-turn');
+            }
+
+            letterPool = data.letterPool; drawLettersToRack(); updatePoolInfo(); updateButtonState(); checkGameOver();
+        }
+
+        socket.on('turnUpdated', (data) => {
+            activePuzzle = data.puzzle;
+            const cells = document.querySelectorAll('.cell-empty');
+            cells.forEach(cell => {
+                const r = cell.dataset.r, c = cell.dataset.c; const cellData = activePuzzle.matrix[r][c];
+                if(cellData.t === myId) { cell.className = 'cell cell-correct'; cell.innerText = cellData.ans; } 
+                else if(cellData.t !== 'w' && cellData.t !== 'blank' && cellData.t !== 'logo' && cellData.t !== 'c') {
+                    cell.className = 'cell cell-other-correct'; cell.innerText = cellData.ans;
+                }
+            });
+
+            // GÖRSEL BONUS POPUPLARI
+            if(data.lastBingoOwner && data.lastBingoOwner === myId) { showBonusPopup(6, "SİZİN", "EL BOŞALTMA"); }
+            if(data.lastWordBonus && data.lastWordBonus.owner === myId) {
+                setTimeout(() => { showBonusPopup(data.lastWordBonus.points, "SİZİN", "KELİME"); }, data.lastBingoOwner ? 2500 : 0);
+            }
+            
+            updateGameState(data);
+        });
+
+        function drawLettersToRack() {
+            const rack = document.getElementById('rack');
+            if(!isMyTurn) return; 
+            let currentTileCount = rack.querySelectorAll('.tile').length;
+            while(currentTileCount < 6 && letterPool.length > 0) {
+                let letter = letterPool.pop(); rack.appendChild(createTile(letter, `tile-${Date.now()}-${letterPool.length}`)); currentTileCount++;
+            }
+        }
+
+        function updatePoolInfo() { document.getElementById('pool-info').innerText = `Havuzdaki Kalan Harf: ${letterPool.length}`; }
+
+        function createTile(letter, id) {
+            const tile = document.createElement('div'); tile.className = 'tile'; tile.draggable = true; tile.innerText = letter; tile.id = id;
+            tile.addEventListener('dragstart', () => { draggedElement = tile; setTimeout(() => tile.classList.add('dragging'), 0); });
+            tile.addEventListener('dragend', () => { tile.classList.remove('dragging'); draggedElement = null; document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over')); });
+            return tile;
+        }
+
+        function handleDragOver(e) { e.preventDefault(); if(this.id === 'rack' || (this.classList.contains('cell-empty') && this.children.length === 0)) { this.classList.add('drag-over'); } }
+        function handleDragLeave() { this.classList.remove('drag-over'); }
+        function handleDrop(e) { e.preventDefault(); this.classList.remove('drag-over'); if(!isMyTurn || !this.classList.contains('cell-empty')) return; draggedElement.className = 'placed-tile'; this.appendChild(draggedElement); updateButtonState(); }
+        function handleDropToRack(e) { e.preventDefault(); this.classList.remove('drag-over'); if(!isMyTurn) return; draggedElement.className = 'tile'; this.appendChild(draggedElement); updateButtonState(); }
+
+        function updateButtonState() {
+            const placedCount = document.querySelectorAll('.cell-empty > .placed-tile').length;
+            const btn = document.getElementById('btn-pas');
+            if(placedCount > 0) { btn.innerText = "Hamleyi Onayla & Bitir"; btn.classList.add('btn-pulse'); } else { btn.innerText = "Pas Geç"; btn.classList.remove('btn-pulse'); }
+        }
+
+        // KELİME KONTROLCÜSÜ GERİ GELDİ
+        function checkWordCompletions() {
+            let totalBonus = 0;
+            const allPlayableCells = document.querySelectorAll('.cell-empty, .cell-correct, .cell-other-correct');
+            
+            for (const [wordId, wordData] of Object.entries(activePuzzle.words)) {
+                if(!wordData.completed) {
+                    let isWordFilled = true;
+                    allPlayableCells.forEach(cell => {
+                        let cellWords = JSON.parse(cell.dataset.words || "[]");
+                        if(cellWords.includes(parseInt(wordId))) {
+                            // İçinde harf yoksa veya bizim henüz onaylamadığımız bir hamleyse
+                            if(cell.classList.contains('cell-empty') && cell.children.length === 0) {
+                                isWordFilled = false;
+                            }
+                        }
+                    });
+
+                    if(isWordFilled) {
+                        wordData.completed = true;
+                        totalBonus += wordData.length; 
+                    }
+                }
+            }
+            return totalBonus;
+        }
+
+        function finishTurn() {
+            if(!isMyTurn) return;
+            let placedTiles = document.querySelectorAll('.cell-empty > .placed-tile');
+            if(placedTiles.length === 0) {
+                socket.emit('submitTurn', { roomId: currentRoomId, turnDelta: 0, correctPlacements: 0, wordBonus: 0, updatedPuzzle: activePuzzle, remainingPool: letterPool });
+                return;
+            }
+
+            let turnDelta = 0; let wrongTiles = []; let correctPlacements = 0;
+
+            placedTiles.forEach(tile => {
+                const cell = tile.parentElement; const r = cell.dataset.r, c = cell.dataset.c;
+                const correctAnswer = activePuzzle.matrix[r][c].ans; const userLetter = tile.innerText;
+
+                if(userLetter === correctAnswer) {
+                    activePuzzle.matrix[r][c].t = myId; 
+                    cell.className = 'cell cell-correct'; cell.innerText = userLetter; turnDelta += 1; correctPlacements++;
+                } else {
+                    cell.classList.add('cell-wrong'); turnDelta -= 1; wrongTiles.push({cell, tile});
+                }
+            });
+
+            // Hatalı harfleri çıkarıp kelimenin bitip bitmediğini anla
+            let wordBonus = (wrongTiles.length === 0) ? checkWordCompletions() : 0;
+
+            if(wrongTiles.length > 0) {
+                setTimeout(() => {
+                    wrongTiles.forEach(item => { item.cell.classList.remove('cell-wrong'); item.tile.className = 'tile'; document.getElementById('rack').appendChild(item.tile); });
+                    socket.emit('submitTurn', { roomId: currentRoomId, turnDelta, correctPlacements, wordBonus: 0, updatedPuzzle: activePuzzle, remainingPool: letterPool });
+                }, 1000);
+            } else {
+                socket.emit('submitTurn', { roomId: currentRoomId, turnDelta, correctPlacements, wordBonus, updatedPuzzle: activePuzzle, remainingPool: letterPool });
+            }
+        }
+
+        function showBonusPopup(points, owner, type) {
+            const popup = document.getElementById('bonus-popup');
+            popup.innerHTML = `<span style="font-size:14px">${owner} ${type} BONUSU</span><br>+${points} PUAN!`;
+            popup.classList.add('show'); setTimeout(() => popup.classList.remove('show'), 2000);
+        }
+
+        function checkGameOver() {
+            let empties = document.querySelectorAll('.cell-empty');
+            if(empties.length === 0 && activePuzzle !== null) {
+                setTimeout(() => {
+                    document.getElementById('game-over').style.display = 'flex';
+                    const myScore = parseInt(document.getElementById('score-p1').innerText);
+                    const opponentScore = parseInt(document.getElementById('score-p2').innerText);
+                    let winText = myScore > opponentScore ? "TEBRİKLER, KAZANDINIZ! 🏆" : (opponentScore > myScore ? "RAKİP KAZANDI!" : "BERABERE!");
+                    document.getElementById('winner-text').innerText = winText;
+                }, 1500);
+            }
+        }
+    </script>
+</body>
+</html>
