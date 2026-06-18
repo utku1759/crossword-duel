@@ -10,31 +10,32 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// YENİ NESİL DİNAMİK BULMACA HAVUZU (8x8 Grid ve Farklı Kelime Boyutları)
+// YENİ NESİL KUSURSUZ "KARE" BULMACA (6x6 - Sıfır Açık Harf!)
 const puzzleDatabase = [
     {
         id: 1,
-        rows: 8,
-        cols: 8,
+        rows: 6,
+        cols: 6,
         matrix: [
-            [{t:'logo', text:'DUELLER<br>BAŞLASIN'}, {t:'c', text:'İLGEÇ', dir:'down'}, {t:'blank'}, {t:'c', text:'KIRMIZI', dir:'down'}, {t:'blank'}, {t:'c', text:'SARI / KIRMIZI<br>TAKIM', dir:'down'}, {t:'blank'}, {t:'blank'}],
-            [{t:'c', text:'YAZI<br>ARACI', dir:'right'}, {t:'w', ans:'K', words:[1,4]}, {t:'w', ans:'A', words:[1]}, {t:'w', ans:'L', words:[1,5]}, {t:'w', ans:'E', words:[1]}, {t:'w', ans:'M', words:[1,6]}, {t:'blank'}, {t:'blank'}],
-            [{t:'blank'}, {t:'w', ans:'A', words:[4]}, {t:'blank'}, {t:'w', ans:'A', words:[5]}, {t:'blank'}, {t:'w', ans:'A', words:[6]}, {t:'c', text:'TÜKETMEK', dir:'down'}, {t:'blank'}],
-            [{t:'c', text:'BÜYÜK<br>EV', dir:'right'}, {t:'w', ans:'K', words:[2,4]}, {t:'w', ans:'O', words:[2]}, {t:'w', ans:'N', words:[2,5]}, {t:'w', ans:'A', words:[2]}, {t:'w', ans:'K', words:[2,6]}, {t:'w', ans:'S', words:[2,7]}, {t:'blank'}],
-            [{t:'blank'}, {t:'w', ans:'D', words:[4]}, {t:'blank'}, {t:'blank'}, {t:'blank'}, {t:'w', ans:'S', words:[6]}, {t:'w', ans:'A', words:[7]}, {t:'blank'}],
-            [{t:'c', text:'YÜCE / ULU', dir:'right'}, {t:'w', ans:'A', words:[3,4]}, {t:'w', ans:'Z', words:[3]}, {t:'w', ans:'İ', words:[3]}, {t:'w', ans:'M', words:[3]}, {t:'w', ans:'I', words:[3,6]}, {t:'w', ans:'R', words:[3,7]}, {t:'blank'}],
-            [{t:'blank'}, {t:'blank'}, {t:'blank'}, {t:'blank'}, {t:'blank'}, {t:'blank'}, {t:'w', ans:'F', words:[7]}, {t:'blank'}],
-            [{t:'blank'}, {t:'blank'}, {t:'blank'}, {t:'blank'}, {t:'blank'}, {t:'blank'}, {t:'blank'}, {t:'blank'}]
+            [{t:'logo', text:'CROSS<br>DUEL'}, {t:'logo', text:'PRO<br>V1'}, {t:'c', text:'BENİM KAZAM<br>(Trafik..)', dir:'down'}, {t:'c', text:'ESERLERLE<br>İLGİLİ', dir:'down'}, {t:'c', text:'KISMET /<br>PAY', dir:'down'}, {t:'c', text:'KEMİK<br>İÇİ', dir:'down'}],
+            [{t:'logo', text:'BÖLÜM<br>1'}, {t:'c', text:'İKNA OLMUŞ<br>--<br>YEMEK EŞYASI', dir:'both'}, {t:'w', ans:'K', words:[1,7]}, {t:'w', ans:'A', words:[1,8]}, {t:'w', ans:'N', words:[1,9]}, {t:'w', ans:'İ', words:[1,10]}],
+            [{t:'c', text:'OLAĞANÜSTÜ<br>ÖYKÜ', dir:'right'}, {t:'w', ans:'M', words:[2,6]}, {t:'w', ans:'A', words:[2,7]}, {t:'w', ans:'S', words:[2,8]}, {t:'w', ans:'A', words:[2,9]}, {t:'w', ans:'L', words:[2,10]}],
+            [{t:'c', text:'BİR KURULUN<br>ÜYESİ', dir:'right'}, {t:'w', ans:'A', words:[3,6]}, {t:'w', ans:'Z', words:[3,7]}, {t:'w', ans:'A', words:[3,8]}, {t:'w', ans:'S', words:[3,9]}, {t:'w', ans:'İ', words:[3,10]}],
+            [{t:'c', text:'HIRSIZ /<br>ÇALAN', dir:'right'}, {t:'w', ans:'S', words:[4,6]}, {t:'w', ans:'A', words:[4,7]}, {t:'w', ans:'R', words:[4,8]}, {t:'w', ans:'İ', words:[4,9]}, {t:'w', ans:'K', words:[4,10]}],
+            [{t:'c', text:'TEK HÜCRELİ<br>CANLI', dir:'right'}, {t:'w', ans:'A', words:[5,6]}, {t:'w', ans:'M', words:[5,7]}, {t:'w', ans:'İ', words:[5,8]}, {t:'w', ans:'P', words:[5,9]}, {t:'logo', text:'CROSS<br>DUEL'}]
         ],
-        // Kelimelerin kendi gerçek uzunluklarına göre bonus puanları dinamik hesaplanacak
+        // Her kelimenin boyutu stratejik olarak 4 ve 5 harflerden oluşur!
         words: { 
-            1: { length: 5, completed: false }, // KALEM (5 Puan)
-            2: { length: 6, completed: false }, // KONAKS (6 Puan)
-            3: { length: 6, completed: false }, // AZİMİR (6 Puan)
-            4: { length: 5, completed: false }, // KADRA (5 Puan)
-            5: { length: 3, completed: false }, // LAN (3 Puan) - Çıtır taktiksel kelime
-            6: { length: 5, completed: false }, // MAKSİ (5 Puan)
-            7: { length: 4, completed: false }  // SARF (4 Puan) - Ortadan başlayan kelime
+            1: { length: 4, completed: false }, // KANİ
+            2: { length: 5, completed: false }, // MASAL
+            3: { length: 5, completed: false }, // AZASİ
+            4: { length: 5, completed: false }, // SARİK
+            5: { length: 4, completed: false }, // AMİP
+            6: { length: 4, completed: false }, // MASA (Dikey)
+            7: { length: 5, completed: false }, // KAZAM (Dikey)
+            8: { length: 5, completed: false }, // ASARİ (Dikey)
+            9: { length: 5, completed: false }, // NASİP (Dikey)
+            10: { length: 4, completed: false } // İLİK (Dikey)
         }
     }
 ];
@@ -42,19 +43,16 @@ const puzzleDatabase = [
 const rooms = {};
 
 io.on('connection', (socket) => {
-    console.log('🔌 Oyuncu Bağlantısı Aktif: ', socket.id);
-
     socket.on('createRoom', () => {
         for (const r in rooms) { if (rooms[r].players.includes(socket.id)) return; }
         const roomId = Math.random().toString(36).substring(2, 6).toUpperCase();
-        const randomIndex = Math.floor(Math.random() * puzzleDatabase.length);
         
         rooms[roomId] = {
             id: roomId,
             players: [socket.id],
             scores: { [socket.id]: 0 },
             turnIndex: 0, 
-            puzzle: JSON.parse(JSON.stringify(puzzleDatabase[randomIndex])), 
+            puzzle: JSON.parse(JSON.stringify(puzzleDatabase[0])), 
             letterPool: []
         };
         
@@ -78,7 +76,6 @@ io.on('connection', (socket) => {
             let cells = [];
             room.puzzle.matrix.forEach(row => { row.forEach(cell => { if(cell.t === 'w') cells.push(cell.ans); }); });
             
-            // Harf havuzunu karıştır
             room.letterPool = cells.sort(() => Math.random() - 0.5);
 
             io.to(roomId).emit('gameStarted', {
@@ -96,7 +93,7 @@ io.on('connection', (socket) => {
         if (!room) return;
 
         room.scores[socket.id] += turnDelta;
-        if(correctPlacements === 4) { room.scores[socket.id] += 4; } // Yeni 4'lü Bingo Bonusu
+        if(correctPlacements === 4) { room.scores[socket.id] += 4; } 
         if(wordBonus > 0) { room.scores[socket.id] += wordBonus; }   
 
         room.puzzle = updatedPuzzle;
@@ -130,4 +127,4 @@ io.on('connection', (socket) => {
 });
 
 const PORT = 3000;
-http.listen(PORT, () => { console.log(`🚀 Sunucu Hazır: http://localhost:${PORT}`); });
+http.listen(PORT, () => { console.log(`🚀 Sunucu Hazır`); });

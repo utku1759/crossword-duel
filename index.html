@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Crossword Duel - Dinamik Versiyon</title>
+    <title>Crossword Duel - Pro Kare</title>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800&family=Roboto:wght@500;700;900&display=swap" rel="stylesheet">
     <script src="/socket.io/socket.io.js"></script>
     <style>
@@ -28,22 +28,24 @@
         
         .board-wrapper { padding: 10px; background-color: #e2e8f0; position: relative; display: flex; align-items: center; justify-content: center; min-height: 420px;}
         
-        /* GRİD ARTIK TAMAMEN DİNAMİK CSS DEĞİŞKENİYLE ÇALIŞIYOR */
-        .grid { display: grid; gap: 4px; width: 100%; background: transparent; border: none; }
+        .grid { display: grid; gap: 5px; width: 100%; background: transparent; border: none; }
         
-        .cell { aspect-ratio: 1; position: relative; display: flex; justify-content: center; align-items: center; font-size: 20px; font-weight: 800; color: var(--text-dark); text-transform: uppercase; border-radius: 10px; cursor: pointer; }
+        .cell { aspect-ratio: 1; position: relative; display: flex; justify-content: center; align-items: center; font-size: 24px; font-weight: 800; color: var(--text-dark); text-transform: uppercase; border-radius: 10px; cursor: pointer; }
         .cell-blank { background: #cbd5e1; opacity: 0.2; pointer-events: none; }
-        .cell-logo { background: linear-gradient(135deg, #10b981, #3b82f6); color: white; box-shadow: 0 3px 0 #059669; border-radius: 10px; display: flex; flex-direction: column; justify-content: center; align-items: center; font-size: 8px; font-weight: 900; line-height: 1.1; text-align: center; }
-        .cell-clue { background-color: var(--clue-bg); box-shadow: 0 3px 0 var(--clue-shadow); flex-direction: column; padding: 2px; text-align: center; }
-        .clue-text { font-size: 7px; font-weight: 800; line-height: 1.1; color: var(--clue-text); font-family: 'Roboto', sans-serif; word-break: break-word; }
-        .arrow { position: absolute; font-size: 9px; font-weight: 900; color: #047857; }
-        .arrow-down { bottom: 1px; left: 50%; transform: translateX(-50%); }
-        .arrow-right { right: 1px; top: 50%; transform: translateY(-50%); }
-        .cell-empty { background-color: #ffffff; box-shadow: 0 3px 0 #cbd5e1; transition: all 0.2s; }
+        .cell-logo { background: linear-gradient(135deg, #10b981, #3b82f6); color: white; box-shadow: 0 4px 0 #059669; border-radius: 10px; display: flex; flex-direction: column; justify-content: center; align-items: center; font-size: 9px; font-weight: 900; line-height: 1.2; text-align: center; }
+        .cell-clue { background-color: var(--clue-bg); box-shadow: 0 4px 0 var(--clue-shadow); flex-direction: column; padding: 3px; text-align: center; }
+        .clue-text { font-size: 8px; font-weight: 800; line-height: 1.1; color: var(--clue-text); font-family: 'Roboto', sans-serif; word-break: break-word; }
         
-        .cell-correct { background-color: var(--success) !important; box-shadow: 0 3px 0 #16a34a !important; color: white !important; animation: popIn 0.3s ease-out; }
-        .cell-other-correct { background-color: var(--p2-color) !important; box-shadow: 0 3px 0 #2563eb !important; color: white !important; animation: popIn 0.3s ease-out; }
-        .cell-wrong { background-color: var(--error) !important; box-shadow: 0 3px 0 #dc2626 !important; color: white !important; animation: shake 0.4s ease-in-out; }
+        /* OKLAR (Hem sağa hem aşağı ok aynı anda çıkabilir!) */
+        .arrow { position: absolute; font-size: 10px; font-weight: 900; color: #047857; }
+        .arrow-down { bottom: 2px; left: 50%; transform: translateX(-50%); }
+        .arrow-right { right: 2px; top: 50%; transform: translateY(-50%); }
+        
+        .cell-empty { background-color: #ffffff; box-shadow: 0 4px 0 #cbd5e1; transition: all 0.2s; }
+        .cell-correct { background-color: var(--success) !important; box-shadow: 0 4px 0 #16a34a !important; color: white !important; animation: popIn 0.3s ease-out; }
+        .cell-other-correct { background-color: var(--p2-color) !important; box-shadow: 0 4px 0 #2563eb !important; color: white !important; animation: popIn 0.3s ease-out; }
+        .cell-wrong { background-color: var(--error) !important; box-shadow: 0 4px 0 #dc2626 !important; color: white !important; animation: shake 0.4s ease-in-out; }
+        
         .bonus-popup { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); background: #fbbf24; color: #78350f; padding: 12px 24px; border-radius: 20px; font-size: 20px; font-weight: 800; box-shadow: 0 10px 25px rgba(0,0,0,0.4); opacity: 0; pointer-events: none; z-index: 50; transition: opacity 0.3s; text-align: center; }
         .bonus-popup.show { opacity: 1; animation: floatUp 1.5s ease-out forwards; }
         .game-over-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.95); display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 100; color: white; text-align: center; }
@@ -55,7 +57,7 @@
         .rack { display: flex; justify-content: center; gap: 8px; min-height: 70px; padding: 12px; background: #f8fafc; border-radius: 16px; border: 2px dashed #cbd5e1; margin-bottom: 20px; cursor: pointer; }
         
         .tile { width: 52px; height: 55px; background-color: var(--tile-bg); border: 2px solid var(--tile-border); border-radius: 12px; display: flex; justify-content: center; align-items: center; font-size: 26px; font-weight: 800; color: var(--tile-text); cursor: pointer; box-shadow: 0 4px 0 #ea580c; transition: all 0.2s; }
-        .placed-tile { width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; background-color: #fef3c7; color: #b45309; font-size: 22px; font-weight: 800; border-radius: 8px; cursor: pointer; transition: all 0.2s; }
+        .placed-tile { width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; background-color: #fef3c7; color: #b45309; font-size: 24px; font-weight: 800; border-radius: 8px; cursor: pointer; transition: all 0.2s; }
         .tile.selected { border: 3px solid #3b82f6; transform: scale(1.1); box-shadow: 0 0 15px rgba(59, 130, 246, 0.6); z-index: 5; }
 
         .btn-pas { width: 100%; padding: 18px; background-color: #94a3b8; color: white; border: none; border-radius: 16px; font-size: 20px; font-weight: 800; cursor: pointer; box-shadow: 0 6px 0 #64748b; transition: all 0.2s; }
@@ -143,7 +145,6 @@
             currentRoomId = data.roomId; activePuzzle = data.puzzle; letterPool = data.letterPool;
             document.getElementById('lobby').style.display = 'none'; document.getElementById('game-area').style.display = 'flex';
             
-            // Izgarayı gelen boyuta göre dinamik şekillendir
             const gridEl = document.getElementById('grid');
             gridEl.style.gridTemplateColumns = `repeat(${activePuzzle.cols}, 1fr)`;
 
@@ -161,8 +162,10 @@
                     else if(cellData.t === 'logo') { cell.className = 'cell cell-logo'; cell.innerHTML = cellData.text; } 
                     else if(cellData.t === 'c') {
                         cell.classList.add('cell-clue'); cell.innerHTML = `<span class="clue-text">${cellData.text}</span>`;
-                        if(cellData.dir === 'down') cell.innerHTML += `<span class="arrow arrow-down">▼</span>`;
-                        if(cellData.dir === 'right') cell.innerHTML += `<span class="arrow arrow-right">►</span>`;
+                        
+                        // YENİ: ÇİFT YÖNLÜ OK MEKANİZMASI (dir:'both' gelirse ikisini de çizer)
+                        if(cellData.dir === 'down' || cellData.dir === 'both') cell.innerHTML += `<span class="arrow arrow-down">▼</span>`;
+                        if(cellData.dir === 'right' || cellData.dir === 'both') cell.innerHTML += `<span class="arrow arrow-right">►</span>`;
                     }
                     else if(cellData.t === 'w' || cellData.t === myId || (cellData.t !== 'w' && cellData.t !== 'blank' && cellData.t !== 'logo')) {
                         cell.classList.add('cell-empty'); cell.dataset.r = r; cell.dataset.c = c;
@@ -231,7 +234,6 @@
             if(!isMyTurn) return; 
             let currentTileCount = rack.querySelectorAll('.tile').length;
             
-            // TUR BAŞI HARF TAKTİKSEL OLARAK 4'E DÜŞÜRÜLDÜ!
             while(currentTileCount < 4 && letterPool.length > 0) {
                 let letter = letterPool.pop(); rack.appendChild(createTile(letter, `tile-${Date.now()}-${letterPool.length}`)); currentTileCount++;
             }
@@ -271,7 +273,7 @@
                     });
                     if(isWordFilled) { 
                         wordData.completed = true; 
-                        totalBonus += wordData.length; // KELİME BOYUTU KADAR BONUS (3 Harf = +3, 6 Harf = +6!)
+                        totalBonus += wordData.length; 
                     }
                 }
             }
