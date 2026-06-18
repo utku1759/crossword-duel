@@ -40,9 +40,10 @@ const puzzleDatabase = [
 const rooms = {};
 
 io.on('connection', (socket) => {
-    console.log('🔌 Bir oyuncu bağlandı! ID:', socket.id);
-
     socket.on('createRoom', () => {
+        // Eski odalarından çıkmasını sağla
+        for (const r in rooms) { if (rooms[r].players.includes(socket.id)) return; }
+
         const roomId = Math.random().toString(36).substring(2, 6).toUpperCase();
         const randomIndex = Math.floor(Math.random() * puzzleDatabase.length);
         
@@ -64,6 +65,9 @@ io.on('connection', (socket) => {
         const room = rooms[roomId];
 
         if (!room) { socket.emit('errorMsg', 'Oda bulunamadı!'); return; }
+        
+        // Çift Tıklama / Hayalet Oyuncu Koruması
+        if (room.players.includes(socket.id)) return; 
         if (room.players.length >= 2) { socket.emit('errorMsg', 'Oda zaten dolu!'); return; }
 
         room.players.push(socket.id);
@@ -110,25 +114,18 @@ io.on('connection', (socket) => {
         });
     });
 
-    // HAYALET OYUNCU TEMİZLEYİCİSİ
     socket.on('disconnect', () => {
-        console.log('❌ Bağlantı koptu:', socket.id);
         for (const roomId in rooms) {
             const room = rooms[roomId];
             const playerIndex = room.players.indexOf(socket.id);
             if (playerIndex !== -1) {
                 room.players.splice(playerIndex, 1);
                 io.to(roomId).emit('errorMsg', 'Rakibinin bağlantısı koptu. Sayfayı yenileyip yeni oda kurabilirsin.');
-                
-                if (room.players.length === 0) {
-                    delete rooms[roomId]; // Oda boşsa tamamen imha et
-                }
+                if (room.players.length === 0) { delete rooms[roomId]; }
             }
         }
     });
 });
 
 const PORT = 3000;
-http.listen(PORT, () => {
-    console.log(`🚀 Sunucu Hazır: http://localhost:${PORT}`);
-});
+http.listen(PORT, () => { console.log(`🚀 Sunucu Hazır: http://localhost:${PORT}`); });
