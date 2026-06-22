@@ -2,105 +2,21 @@
     {
         "id": 4,
         "rows": 9,
-        "cols": 9,
+        "cols": 7,
         "matrix": [
-            [
-                {"t":"blank"}, {"t":"blank"}, {"t":"blank"}, 
-                {"t":"c", "text":"EĞİTİM İŞİYLE<br>UĞRAŞAN", "dir":"down"}, 
-                {"t":"blank"}, {"t":"blank"}, {"t":"blank"}, {"t":"blank"}, {"t":"blank"}
-            ],
-            [
-                {"t":"blank"}, {"t":"blank"}, 
-                {"t":"c", "text":"KENDİ<br>ÇIKARINDAN<br>VAZGEÇME", "dir":"right"}, 
-                {"t":"w", "ans":"Ö", "words":[1,2]}, 
-                {"t":"w", "ans":"Z", "words":[2]}, 
-                {"t":"w", "ans":"V", "words":[2]}, 
-                {"t":"w", "ans":"E", "words":[2]}, 
-                {"t":"w", "ans":"R", "words":[2]}, 
-                {"t":"w", "ans":"İ", "words":[2]}
-            ],
-            [
-                {"t":"blank"}, 
-                {"t":"c", "text":"ODUNSU<br>BİTKİ", "dir":"right"}, 
-                {"t":"w", "ans":"A", "words":[3]}, 
-                {"t":"w", "ans":"Ğ", "words":[1,3]}, 
-                {"t":"w", "ans":"A", "words":[3]}, 
-                {"t":"w", "ans":"Ç", "words":[3]}, 
-                {"t":"blank"}, 
-                {"t":"c", "text":"SU İÇİLEN<br>KAP", "dir":"down"}, 
-                {"t":"blank"}
-            ],
-            [
-                {"t":"blank"}, {"t":"blank"}, 
-                {"t":"c", "text":"İZİN,<br>MÜSAADE", "dir":"right"}, 
-                {"t":"w", "ans":"R", "words":[1,4]}, 
-                {"t":"w", "ans":"U", "words":[4]}, 
-                {"t":"w", "ans":"H", "words":[4]}, 
-                {"t":"w", "ans":"S", "words":[4]}, 
-                {"t":"w", "ans":"A", "words":[4,11]}, 
-                {"t":"w", "ans":"T", "words":[4]}
-            ],
-            [
-                {"t":"c", "text":"ÇOCUK<br>BAKIMEVİ", "dir":"right"}, 
-                {"t":"w", "ans":"K", "words":[5]}, 
-                {"t":"w", "ans":"R", "words":[5]}, 
-                {"t":"w", "ans":"E", "words":[1,5]}, 
-                {"t":"w", "ans":"Ş", "words":[5]}, 
-                {"t":"c", "text":"SPOR<br>MÜSABAKASI", "dir":"down"}, 
-                {"t":"blank"}, 
-                {"t":"w", "ans":"T", "words":[11]}, 
-                {"t":"blank"}
-            ],
-            [
-                {"t":"blank"}, {"t":"blank"}, 
-                {"t":"c", "text":"DOKUNMA,<br>DEĞME", "dir":"right"}, 
-                {"t":"w", "ans":"T", "words":[1,6]}, 
-                {"t":"w", "ans":"E", "words":[6]}, 
-                {"t":"w", "ans":"M", "words":[6,10]}, 
-                {"t":"w", "ans":"A", "words":[6]}, 
-                {"t":"w", "ans":"S", "words":[6,11]}, 
-                {"t":"blank"}
-            ],
-            [
-                {"t":"blank"}, {"t":"blank"}, 
-                {"t":"c", "text":"ÇALIŞANA<br>ÖDENEN AYLIK", "dir":"right"}, 
-                {"t":"w", "ans":"M", "words":[1,7]}, 
-                {"t":"w", "ans":"A", "words":[7]}, 
-                {"t":"w", "ans":"A", "words":[7,10]}, 
-                {"t":"w", "ans":"Ş", "words":[7]}, 
-                {"t":"blank"}, {"t":"blank"}
-            ],
-            [
-                {"t":"blank"}, {"t":"blank"}, 
-                {"t":"c", "text":"DİPLOMAT,<br>SEFİR", "dir":"right"}, 
-                {"t":"w", "ans":"E", "words":[1,8]}, 
-                {"t":"w", "ans":"L", "words":[8]}, 
-                {"t":"w", "ans":"Ç", "words":[8,10]}, 
-                {"t":"w", "ans":"İ", "words":[8]}, 
-                {"t":"blank"}, {"t":"blank"}
-            ],
-            [
-                {"t":"blank"}, {"t":"blank"}, 
-                {"t":"c", "text":"HAYKIRIŞ,<br>BAĞIRMA", "dir":"right"}, 
-                {"t":"w", "ans":"N", "words":[1,9]}, 
-                {"t":"w", "ans":"İ", "words":[9]}, 
-                {"t":"w", "ans":"D", "words":[9]}, 
-                {"t":"w", "ans":"A", "words":[9]}, 
-                {"t":"blank"}, {"t":"blank"}
-            ]
+            [{"t":"logo", "text":"CROSS<br>UP"}, {"t":"c", "text":"VÜCUDUN<br>SAVUNMA<br>HÜCRESİ", "dir":"down"}, {"t":"c", "text":"GEZEGENİMİZİN<br>Uydusu", "dir":"down"}, {"t":"c", "text":"OTOMOBİLİN<br>SESLE<br>UYARISI", "dir":"down"}, {"t":"c", "text":"BİR SPOR<br>DALI", "dir":"down"}, {"t":"c", "text":"AĞAÇLARIN<br>GÖVDESİ", "dir":"down"}, {"t":"c", "text":"TOPLUMSAL<br>YASA", "dir":"down"}],
+            [{"t":"c", "text":"ŞEHİR, İL", "dir":"right"}, {"t":"w", "ans":"A", "words":[401,501]}, {"t":"w", "ans":"A", "words":[401,502]}, {"t":"w", "ans":"K", "words":[401,503]}, {"t":"w", "ans":"B", "words":[401,504]}, {"t":"w", "ans":"O", "words":[401,505]}, {"t":"w", "ans":"Y", "words":[401,506]}],
+            [{"t":"c", "text":"SESLENME<br>SÖZÜ", "dir":"right"}, {"t":"w", "ans":"L", "words":[402,501]}, {"t":"w", "ans":"Y", "words":[402,502]}, {"t":"c", "text":"KIYMETLİ<br>MADEN<br>--<br>YABANCI<br>DİL", "dir":"both"}, {"t":"w", "ans":"O", "words":[403,504]}, {"t":"w", "ans":"D", "words":[403,505]}, {"t":"w", "ans":"U", "words":[403,506]}],
+            [{"t":"c", "text":"HAYVANLARIN<br>BEDENİ", "dir":"right"}, {"t":"w", "ans":"T", "words":[404,501]}, {"t":"w", "ans":"A", "words":[404,502]}, {"t":"w", "ans":"R", "words":[404,507]}, {"t":"w", "ans":"K", "words":[404,504]}, {"t":"w", "ans":"U", "words":[404,505]}, {"t":"w", "ans":"N", "words":[404,506]}],
+            [{"t":"c", "text":"DOĞA<br>OLAYI", "dir":"right"}, {"t":"w", "ans":"I", "words":[405,501]}, {"t":"w", "ans":"N", "words":[405,502]}, {"t":"w", "ans":"O", "words":[405,507]}, {"t":"w", "ans":"S", "words":[405,504]}, {"t":"c", "text":"ŞİFRE,<br>KOD<br>--<br>İLETİŞİM<br>ARACI", "dir":"both"}, {"t":"w", "ans":"A", "words":[406,506]}],
+            [{"t":"c", "text":"GELENEKSEL<br>GİYSİ", "dir":"right"}, {"t":"w", "ans":"V", "words":[407,501]}, {"t":"w", "ans":"I", "words":[407,502]}, {"t":"w", "ans":"T", "words":[407,507]}, {"t":"c", "text":"HAYVAN<br>BARINAĞI<br>--<br>BİR<br>RENK", "dir":"both"}, {"t":"w", "ans":"P", "words":[408,508]}, {"t":"w", "ans":"M", "words":[408,506]}],
+            [{"t":"c", "text":"SICAKLIK<br>BİRİMİ", "dir":"right"}, {"t":"w", "ans":"A", "words":[409,501]}, {"t":"c", "text":"İNSANIN<br>ÖZÜ<br>--<br>DİNİ<br>GÖREV", "dir":"both"}, {"t":"w", "ans":"A", "words":[410,507]}, {"t":"w", "ans":"A", "words":[410,509]}, {"t":"w", "ans":"O", "words":[410,508]}, {"t":"w", "ans":"S", "words":[410,506]}],
+            [{"t":"c", "text":"UZUN SÜRELİ<br>HAYAT", "dir":"right"}, {"t":"w", "ans":"R", "words":[411,501]}, {"t":"w", "ans":"R", "words":[411,510]}, {"t":"w", "ans":"L", "words":[411,507]}, {"t":"w", "ans":"T", "words":[411,509]}, {"t":"w", "ans":"T", "words":[411,508]}, {"t":"c", "text":"ÖVGÜ,<br>TAKDİR", "dir":"down"}],
+            [{"t":"c", "text":"AİLENİN<br>REİSİ", "dir":"right"}, {"t":"w", "ans":"E", "words":[412,501]}, {"t":"w", "ans":"O", "words":[412,510]}, {"t":"c", "text":"İKAZ,<br>UYARI", "dir":"right"}, {"t":"w", "ans":"U", "words":[413,509]}, {"t":"w", "ans":"A", "words":[413,508]}, {"t":"w", "ans":"N", "words":[413,511]}]
         ],
         "words": {
-            "1": {"length": 8, "completed": false},
-            "2": {"length": 6, "completed": false},
-            "3": {"length": 4, "completed": false},
-            "4": {"length": 6, "completed": false},
-            "5": {"length": 4, "completed": false},
-            "6": {"length": 5, "completed": false},
-            "7": {"length": 4, "completed": false},
-            "8": {"length": 4, "completed": false},
-            "9": {"length": 4, "completed": false},
-            "10": {"length": 3, "completed": false},
-            "11": {"length": 3, "completed": false}
+            "401": {"length": 6, "completed": false}, "402": {"length": 2, "completed": false}, "403": {"length": 3, "completed": false}, "404": {"length": 6, "completed": false}, "405": {"length": 4, "completed": false}, "406": {"length": 1, "completed": false}, "407": {"length": 3, "completed": false}, "408": {"length": 2, "completed": false}, "409": {"length": 1, "completed": false}, "410": {"length": 4, "completed": false}, "411": {"length": 5, "completed": false}, "412": {"length": 2, "completed": false}, "413": {"length": 3, "completed": false},
+            "501": {"length": 8, "completed": false}, "502": {"length": 5, "completed": false}, "503": {"length": 1, "completed": false}, "504": {"length": 4, "completed": false}, "505": {"length": 2, "completed": false}, "506": {"length": 6, "completed": false}, "507": {"length": 4, "completed": false}, "508": {"length": 4, "completed": false}, "509": {"length": 3, "completed": false}, "510": {"length": 2, "completed": false}, "511": {"length": 1, "completed": false}
         }
     }
 ]
