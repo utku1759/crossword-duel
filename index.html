@@ -14,6 +14,10 @@
         .lobby-container { width: 100%; max-width: 440px; background: white; padding: 40px 30px; border-radius: 24px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
         .lobby-title { font-size: 32px; font-weight: 800; margin-bottom: 30px; background: linear-gradient(135deg, #10b981, #3b82f6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         .lobby-btn { width: 100%; padding: 16px; border: none; border-radius: 14px; font-size: 18px; font-weight: 700; cursor: pointer; margin-bottom: 15px; transition: all 0.2s; color: white; }
+        
+        .btn-bot { background: linear-gradient(135deg, #f59e0b, #ea580c); box-shadow: 0 5px 0 #c2410c; margin-bottom: 25px; } 
+        .btn-bot:active { transform: translateY(5px); box-shadow: none; }
+        
         .btn-create { background: #10b981; box-shadow: 0 5px 0 #059669; } .btn-create:active { transform: translateY(5px); box-shadow: none; }
         .btn-join { background: #3b82f6; box-shadow: 0 5px 0 #2563eb; } .btn-join:active { transform: translateY(5px); box-shadow: none; }
         .input-code { width: 100%; padding: 14px; border: 2px solid #cbd5e1; border-radius: 12px; font-size: 18px; text-align: center; margin-bottom: 15px; text-transform: uppercase; font-weight: 700; }
@@ -27,7 +31,6 @@
         .p-score { font-size: 22px; font-weight: 800; color: #1e293b; }
         .vs { font-weight: 800; color: #94a3b8; font-size: 14px; }
         
-        /* OYUN TAHTASI (Sıkıştırılmış 7x9 Matris) */
         .board-wrapper { padding: 8px; background-color: #e2e8f0; position: relative; display: flex; align-items: center; justify-content: center; }
         .grid { display: grid; gap: 3px; width: 100%; background: transparent; border: none; }
         
@@ -35,7 +38,6 @@
         .cell-blank { background: #cbd5e1; opacity: 0.2; pointer-events: none; }
         .cell-logo { background: linear-gradient(135deg, #10b981, #3b82f6); color: white; box-shadow: 0 2px 0 #059669; border-radius: 6px; display: flex; flex-direction: column; justify-content: center; align-items: center; font-size: 8px; font-weight: 900; line-height: 1.1; text-align: center; }
         
-        /* İPUCU KUTULARI (Tam gazetelerdeki gibi minik yazılar) */
         .cell-clue { background-color: var(--clue-bg); box-shadow: 0 2px 0 var(--clue-shadow); flex-direction: column; padding: 2px; text-align: center; }
         .clue-text { font-size: 6px; font-weight: 800; line-height: 1.1; color: var(--clue-text); font-family: 'Roboto', sans-serif; word-break: break-word; }
         .arrow { position: absolute; font-size: 8px; font-weight: 900; color: #047857; }
@@ -70,13 +72,15 @@
         @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
         @keyframes popIn { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
         @keyframes floatUp { 0% { transform: translate(-50%, -50%) scale(0.8); opacity: 1; } 100% { transform: translate(-50%, -150%) scale(1.1); opacity: 0; } }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
     <div class="lobby-container" id="lobby">
         <h1 class="lobby-title">Crossword Duel</h1>
+        <button class="lobby-btn btn-bot" onclick="startBotGame()">⚡ Şimdi Oyna</button>
+        <div style="margin: 15px 0; color: #94a3b8; font-weight: bold;">VEYA ARKADAŞINLA OYNA</div>
         <button class="lobby-btn btn-create" onclick="createRoom()">Oda Oluştur</button>
-        <div style="margin: 15px 0; color: #94a3b8; font-weight: bold;">VEYA</div>
         <input type="text" class="input-code" id="room-input" placeholder="ODA KODUNU GİR">
         <button class="lobby-btn btn-join" onclick="joinRoom()">Odaya Katıl</button>
         <div class="waiting-text" id="waiting-msg">Oda kuruldu! Kod: <span id="display-code" style="color:#10b981; font-size:24px;">----</span><br><br>Arkadaşının katılması bekleniyor...</div>
@@ -126,6 +130,12 @@
         let isMyTurn = false;
         let selectedTile = null;
 
+        // BOT STATE VE KİLİTLENME KORUMASI
+        let isBotMode = false;
+        let botScore = 0;
+        let botRack = []; // BOTUN KENDİ ÖZEL ISTAKASI
+        let consecutivePasses = 0; // OYUN KİLİTLENME SAYAÇI
+
         socket.on('connect', () => { myId = socket.id; });
 
         function createRoom() { socket.emit('createRoom'); }
@@ -147,13 +157,184 @@
         socket.on('gameStarted', (data) => {
             currentRoomId = data.roomId; activePuzzle = data.puzzle; letterPool = data.letterPool;
             document.getElementById('lobby').style.display = 'none'; document.getElementById('game-area').style.display = 'flex';
-            
-            // Izgara genişliği otomatik ayarlandı (Görseldeki gibi 7 kolon)
             const gridEl = document.getElementById('grid');
             gridEl.style.gridTemplateColumns = `repeat(${activePuzzle.cols}, 1fr)`;
-
             renderBoard(); updateGameState(data);
         });
+
+        async function startBotGame() {
+            isBotMode = true;
+            myId = "player_local"; 
+            consecutivePasses = 0;
+            
+            try {
+                const response = await fetch('/puzzles.json');
+                const puzzles = await response.json();
+                activePuzzle = puzzles[Math.floor(Math.random() * puzzles.length)];
+                
+                letterPool = [];
+                for(let r=0; r<activePuzzle.rows; r++) {
+                    for(let c=0; c<activePuzzle.cols; c++) {
+                        if(activePuzzle.matrix[r][c].ans) {
+                            letterPool.push(activePuzzle.matrix[r][c].ans);
+                        }
+                    }
+                }
+                letterPool.sort(() => Math.random() - 0.5);
+
+                document.getElementById('lobby').style.display = 'none'; 
+                document.getElementById('game-area').style.display = 'flex';
+                const gridEl = document.getElementById('grid');
+                gridEl.style.gridTemplateColumns = `repeat(${activePuzzle.cols}, 1fr)`;
+
+                isMyTurn = true;
+                document.getElementById('turn-overlay').classList.remove('active');
+                document.getElementById('badge-p1').classList.add('active-turn');
+                
+                renderBoard();
+                
+                // Oyuncuya 4 harf ver
+                drawLettersToRack();
+                
+                // Bota özel ıstakasına 4 harf ver
+                botRack = [];
+                drawLettersToBotRack();
+                
+                updatePoolInfo();
+                updateButtonState();
+
+            } catch (error) {
+                alert("Bulmacalar yüklenirken hata oluştu!");
+                console.error(error);
+            }
+        }
+
+        // BOTA ORTAK HAVUZDAN HARF ÇEKME FONKSİYONU
+        function drawLettersToBotRack() {
+            while(botRack.length < 4 && letterPool.length > 0) {
+                botRack.push(letterPool.pop());
+            }
+        }
+
+        function passTurnToBot() {
+            isMyTurn = false;
+            document.getElementById('turn-overlay').classList.add('active'); 
+            document.getElementById('badge-p2').classList.add('active-turn');
+            document.getElementById('badge-p1').classList.remove('active-turn');
+            setTimeout(botMakeMove, 2500); // 2.5 Saniye düşünüp oynasın
+        }
+
+        function botMakeMove() {
+            if (!isBotMode || activePuzzle === null) return;
+            
+            let unsolvedWords = Object.keys(activePuzzle.words).filter(wId => !activePuzzle.words[wId].completed);
+            let moveMade = false;
+            let tilesPlaced = 0;
+
+            if(unsolvedWords.length > 0) {
+                unsolvedWords.sort(() => Math.random() - 0.5);
+
+                for (let wordId of unsolvedWords) {
+                    if (moveMade) break;
+
+                    let cells = document.querySelectorAll('.cell-empty');
+                    let targetCells = [];
+                    
+                    cells.forEach(cell => {
+                        let cellWords = JSON.parse(cell.dataset.words || "[]");
+                        if(cellWords.includes(parseInt(wordId))) {
+                            const r = cell.dataset.r, c = cell.dataset.c;
+                            if(activePuzzle.matrix[r][c].t === 'w') {
+                                targetCells.push(cell);
+                            }
+                        }
+                    });
+
+                    if(targetCells.length > 0) {
+                        targetCells.sort(() => Math.random() - 0.5);
+                        let cellsToPlay = [];
+                        let tempBotRack = [...botRack]; // Bot kendi görünmez ıstakasını kopyalar
+                        
+                        // Bot elindeki 4 harften o kelimeye uyan var mı diye kontrol eder
+                        for(let cell of targetCells) {
+                            const r = cell.dataset.r, c = cell.dataset.c;
+                            const letter = activePuzzle.matrix[r][c].ans;
+                            
+                            let rackIndex = tempBotRack.indexOf(letter);
+                            if(rackIndex !== -1) {
+                                tempBotRack.splice(rackIndex, 1);
+                                cellsToPlay.push({cell: cell, letter: letter});
+                                if(cellsToPlay.length >= 4) break; 
+                            }
+                        }
+
+                        if (cellsToPlay.length > 0) {
+                            // Uygun harfler bulundu, tahtaya dizilir
+                            for(let item of cellsToPlay) {
+                                let cell = item.cell;
+                                let letter = item.letter;
+                                const r = cell.dataset.r, c = cell.dataset.c;
+                                
+                                // Bot elindeki harfi kalıcı olarak siler
+                                let actualIndex = botRack.indexOf(letter);
+                                if(actualIndex !== -1) {
+                                    botRack.splice(actualIndex, 1);
+                                }
+                                
+                                activePuzzle.matrix[r][c].t = 'bot'; 
+                                cell.className = 'cell cell-other-correct';
+                                cell.innerText = letter;
+                                tilesPlaced++;
+                            }
+                            
+                            botScore += tilesPlaced;
+                            
+                            let isWordTotallyFinished = true;
+                            let allCellsAfterMove = document.querySelectorAll('.cell-empty, .cell-correct, .cell-other-correct');
+                            
+                            allCellsAfterMove.forEach(cellNode => {
+                                let cWords = JSON.parse(cellNode.dataset.words || "[]");
+                                if(cWords.includes(parseInt(wordId))) {
+                                    const r = cellNode.dataset.r, c = cellNode.dataset.c;
+                                    if(activePuzzle.matrix[r][c].t === 'w') {
+                                        isWordTotallyFinished = false;
+                                    }
+                                }
+                            });
+
+                            if(isWordTotallyFinished) {
+                                activePuzzle.words[wordId].completed = true;
+                                botScore += activePuzzle.words[wordId].length;
+                                showBonusPopup(activePuzzle.words[wordId].length, "RAKİBİN", "KELİME");
+                            }
+
+                            document.getElementById('score-p2').innerText = botScore;
+                            drawLettersToBotRack(); // Bot kullandığı harf kadar yeniden ortak havuzdan çeker
+                            updatePoolInfo();
+                            
+                            moveMade = true;
+                            consecutivePasses = 0; // Hamle yapıldığı için pas sayacı sıfırlanır
+                        }
+                    }
+                }
+            }
+            
+            // EĞER BOT HİÇBİR HAMLE YAPAMAZSA (Elinde uyan harf yoksa)
+            if (!moveMade) {
+                consecutivePasses++; // Bot pas geçmiş sayılır
+            }
+
+            checkGameOver();
+            
+            // Oyun bitmediyse sırayı geri sana verir
+            if(consecutivePasses < 2 && document.querySelectorAll('.cell-empty').length > 0) {
+                isMyTurn = true;
+                document.getElementById('turn-overlay').classList.remove('active');
+                document.getElementById('badge-p1').classList.add('active-turn');
+                document.getElementById('badge-p2').classList.remove('active-turn');
+                updateButtonState();
+            }
+        }
 
         function renderBoard() {
             const grid = document.getElementById('grid'); grid.innerHTML = '';
@@ -166,7 +347,6 @@
                     else if(cellData.t === 'logo') { cell.className = 'cell cell-logo'; cell.innerHTML = cellData.text; } 
                     else if(cellData.t === 'c') {
                         cell.classList.add('cell-clue'); cell.innerHTML = `<span class="clue-text">${cellData.text}</span>`;
-                        // Çift yönlü ok desteği
                         if(cellData.dir === 'down' || cellData.dir === 'both') cell.innerHTML += `<span class="arrow arrow-down">▼</span>`;
                         if(cellData.dir === 'right' || cellData.dir === 'both') cell.innerHTML += `<span class="arrow arrow-right">►</span>`;
                     }
@@ -276,7 +456,7 @@
                     });
                     if(isWordFilled) { 
                         wordData.completed = true; 
-                        totalBonus += wordData.length; // Kelime boyutu kadar bonus verilir! (MESKEN=6 Puan)
+                        totalBonus += wordData.length; 
                     }
                 }
             }
@@ -286,11 +466,23 @@
         function finishTurn() {
             if(!isMyTurn) return;
             let placedTiles = document.querySelectorAll('.cell-empty > .placed-tile');
+            
+            // SADECE PAS GEÇME DURUMU (Harf değişimi iptal edildi)
             if(placedTiles.length === 0) {
-                socket.emit('submitTurn', { roomId: currentRoomId, turnDelta: 0, correctPlacements: 0, wordBonus: 0, updatedPuzzle: activePuzzle, remainingPool: letterPool });
+                consecutivePasses++; // Sen pas geçmiş sayılırsın
+                checkGameOver();
+                
+                if(document.getElementById('game-over').style.display !== 'flex') {
+                    if(isBotMode) {
+                        passTurnToBot();
+                    } else {
+                        socket.emit('submitTurn', { roomId: currentRoomId, turnDelta: 0, correctPlacements: 0, wordBonus: 0, updatedPuzzle: activePuzzle, remainingPool: letterPool });
+                    }
+                }
                 return;
             }
 
+            consecutivePasses = 0; // Hamle yaptığın için pas sayacı sıfırlandı
             let turnDelta = 0; let wrongTiles = []; let correctPlacements = 0;
 
             placedTiles.forEach(tile => {
@@ -306,6 +498,29 @@
             });
 
             let wordBonus = (wrongTiles.length === 0) ? checkWordCompletions() : 0;
+
+            if(isBotMode) {
+                if(wrongTiles.length > 0) {
+                    setTimeout(() => {
+                        wrongTiles.forEach(item => { item.cell.classList.remove('cell-wrong'); item.tile.className = 'tile'; document.getElementById('rack').appendChild(item.tile); });
+                    }, 1000);
+                } else {
+                    let currentScore = parseInt(document.getElementById('score-p1').innerText);
+                    document.getElementById('score-p1').innerText = currentScore + turnDelta + wordBonus;
+                    if(wordBonus > 0) showBonusPopup(wordBonus, "SİZİN", "KELİME");
+                    
+                    placedTiles.forEach(tile => tile.remove());
+                    drawLettersToRack();
+                    updatePoolInfo();
+                    updateButtonState();
+                    checkGameOver();
+                    
+                    if(document.getElementById('game-over').style.display !== 'flex') {
+                        passTurnToBot();
+                    }
+                }
+                return; 
+            }
 
             if(wrongTiles.length > 0) {
                 setTimeout(() => {
@@ -325,7 +540,8 @@
 
         function checkGameOver() {
             let empties = document.querySelectorAll('.cell-empty');
-            if(empties.length === 0 && activePuzzle !== null) {
+            // OYUN BİTİŞ KURALI GÜNCELLENDİ: Tahta dolarsa VEYA arka arkaya 2 kez "Pas Geç"ilirse oyun biter.
+            if((empties.length === 0 && activePuzzle !== null) || consecutivePasses >= 2) {
                 setTimeout(() => {
                     document.getElementById('game-over').style.display = 'flex';
                     const myScore = parseInt(document.getElementById('score-p1').innerText);
